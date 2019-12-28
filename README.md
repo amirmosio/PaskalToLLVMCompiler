@@ -7,3 +7,4 @@ links:
 https://school.geekwall.in/p/Byz8Rg0GX/writing-your-own-programming-language-and-compiler-with-python 
 PLY Git: https://github.com/dabeaz/ply
 https://github.com/brianwu02/pascal.py/tree/master/modules
+https://github.com/sodabeta7/Python-Pascal-Compiler/blob/master/frontend/lex_pas.py

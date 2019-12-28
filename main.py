@@ -6,7 +6,7 @@ data_test1 = '''
    + -20 *2
  '''
 data_test2 = "5*24"
-data_test3 = "a:array[12 :10] int"
+data_test3 = "a:array[ 12     :10] integer"
 ############### end Test Strings ####################
 
 # Build the lexer and try it out

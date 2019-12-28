@@ -10,7 +10,15 @@ import tokens_and_rules as tk
 
 class Scanner:
     # List of token names.   This is always required
-    tokens = tk.tokens
+    tokens = (
+        'NUMBER',
+        'PLUS',
+        'MINUS',
+        'TIMES',
+        'DIVIDE',
+        'LPAREN',
+        'RPAREN',
+    )
 
     ############ Rules ###############
 
@@ -23,6 +31,8 @@ class Scanner:
 
     #######################
 
+    #####################################
+    #####################################
     # A regular expression rule with some action code
 
     # Note addition of self parameter since we're in a class
@@ -44,6 +54,8 @@ class Scanner:
         print("Illegal character '%s'" % t.value[0])
         t.lexer.skip(1)
 
+    #####################################
+    #####################################
     # Build the lexer
     def build(self, **kwargs):
         self.lexer = lex.lex(module=self, **kwargs)

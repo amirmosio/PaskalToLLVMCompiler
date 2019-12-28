@@ -31,7 +31,13 @@ class Scanner:
 
     #######################
 
-    #####################################
+    ######Global Variables#############
+    def __init__(self):
+        pass
+
+    #####END Global Variables############
+
+    ###########Action Rules##############
     #####################################
     # A regular expression rule with some action code
 

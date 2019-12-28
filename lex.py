@@ -5,72 +5,178 @@
 # # numbers and +,-,*,/
 # # ------------------------------------------------------------
 import ply.lex as lex
+import re
+from ply.lex import TOKEN
 import tokens_and_rules as tk
 
+rsv_sys_function = ["main", "read", "write", "strlen"]
+rsv_sys_type = ["array", "boolean", "string", "char", "integer", "real"]
+rsv_sys_con = ["false", "true"]
+rsv_other = ["assign", "break", "begin", "continue", "do", "else", "end", "function", "procedure", "if", "of",
+             "return",
+             "while", "var"]
 
-class Scanner:
-    # List of token names.   This is always required
-    tokens = (
-        'NUMBER',
-        'PLUS',
-        'MINUS',
-        'TIMES',
-        'DIVIDE',
-        'LPAREN',
-        'RPAREN',
-    )
+reserved = {}
+reserved_type = {}
+for w in rsv_sys_function:
+    reserved[w] = 'SYS_FUNCT'
+    # reserved_type[w]='f'+w.upper()
+    reserved_type[w] = 'SYS_FUNCT'
 
-    ############ Rules ###############
+for w in rsv_sys_con:
+    reserved[w] = 'SYS_CON'
+    # reserved_type[w]='c'+w.upper()
+    reserved_type[w] = 'cSYS_CON'
 
-    t_PLUS = r'\+'
-    t_MINUS = r'-'
-    t_TIMES = r'\*'
-    t_DIVIDE = r'/'
-    t_LPAREN = r'\('
-    t_RPAREN = r'\)'
+for w in rsv_sys_type:
+    reserved[w] = 'SYS_TYPE'
+    # reserved_type[w]='c'+w.upper()
+    reserved_type[w] = 'c' + 'SYS_TYPE'
 
-    #######################
+for w in rsv_other:
+    reserved[w] = 'k' + w.upper()
+    reserved_type[w] = 'k' + w.upper()
 
-    ######Global Variables#############
-    def __init__(self):
-        pass
+tokens = (
+    'cCHAR', 'cINTEGER', 'cREAL', 'cBOO', 'cSTRING', 'oLP', 'oRP', 'oLB', 'oRB', 'oPLUS', 'oMINUS',
+    'oMUL', 'oDIV', 'oASSIGN', 'oEQUAL', 'oLT', 'oGT', 'oLE', 'oGE', 'oUNEQU', 'oCOMMA', 'oSEMI',
+    'oCOLON', 'oQUOTE', 'oDOTDOT', 'oDOT', 'yNAME', 'oAND', 'oOR', 'oLOGICAL_OR', 'LOGICAL_AND', 'oMOD',
+    "LOGICAL_NOT", "UNARY_MINUS"
+)
+tokens += tuple(list(set(reserved_type.values())))
 
-    #####END Global Variables############
+############ Rules ###############
+letter = r"[a-zA-Z_]"
+alnum = r"[_a-zA-Z0-9]"
+dec = r"[0-9]"
+hex = r"[0-9a-fA-F]"
 
-    ###########Action Rules##############
-    #####################################
-    # A regular expression rule with some action code
 
-    # Note addition of self parameter since we're in a class
-    def t_NUMBER(self, t):
-        r'\d+'
-        t.value = int(t.value)
+# c_INTEGER
+@TOKEN(r'[1-9]' + dec + r'*')
+def t_cINTEGER_10(t):
+    t.value = int(t.value, 10)
+    t.type = 'cINTEGER'
+    return t
+
+
+@TOKEN(r'0(x|X)' + hex + r'+')
+def t_cINTEGER_16(t):
+    t.value = int(t.value, 16)
+    t.type = 'cINTEGER'
+    return t
+
+
+@TOKEN(dec + r'+(\.' + dec + r'+)?([E|e][+\-]?' + dec + r'+)?')
+def t_cREAL(t):
+    return t
+
+
+t_cCHAR = r"'([^']|\")'"
+t_cSTRING = r"\'(\\.|[^\'])(\\.|[^\'])+\'"
+
+# bitwise
+t_oAND = re.escape(r'&')
+t_oOR = re.escape(r'|')
+t_oXOR = re.escape(r'^')
+# logic
+t_oLOGICAL_AND = re.escape(r'and')
+t_oLOGICAL_OR = re.escape(r'or')
+# arithmetic
+t_oPLUS = re.escape(r'+')
+t_oMINUS = re.escape(r'-')
+t_oMUL = re.escape(r'*')
+t_oDIV = re.escape(r'/')
+t_oMOD = re.escape(r'%')
+# compare
+t_oEQUAL = re.escape(r'=')
+t_oLT = re.escape(r'<')
+t_oGT = re.escape(r'>')
+t_oLE = re.escape(r'<=')
+t_oGE = re.escape(r'>=')
+t_oUN_EQU = re.escape(r'<>')
+# unary
+t_oUNARY_MINUS = re.escape(r'-')
+t_oLOGICAL_NOT = re.escape(r'~')
+
+t_oLP = re.escape(r'(')
+t_oRP = re.escape(r')')
+t_oLB = re.escape(r'[')
+t_oRB = re.escape(r']')
+
+
+# t_oASSIGN = re.escape(r':=')
+# t_oCOMMA = re.escape(r',')
+# t_oSEMI = re.escape(r';')
+# t_oCOLON = re.escape(r':')
+# t_oQUOTE = re.escape(r"'")
+# t_oDOTDOT = re.escape(r'..')
+# t_oDOT = re.escape(r'.')
+
+@TOKEN(letter + alnum + r'*')
+def t_ID_or_KEYWORD(t):
+    if reserved.has_key(t.value):
+        # key=reserved[t]
+        # if key=='SYS_FUNCT' or key=='SYS_PROC':
+        #   t.value='sys_func'
+        # elif key=='SYS_CON':
+        #   t.value=
+        t.type = reserved_type[t.value]
         return t
+    # else:
+    #   pass
+    t.type = 'yNAME'
+    return t
 
-    # Define a rule so we can track line numbers
-    def t_newline(self, t):
-        r'\n+'
-        t.lexer.lineno += len(t.value)
 
-    # A string containing ignored characters (spaces and tabs)
-    t_ignore = ' \t'
+#######################
 
-    # Error handling rule
-    def t_error(self, t):
-        print("Illegal character '%s'" % t.value[0])
-        t.lexer.skip(1)
+# A string containing ignored characters (spaces and tabs)
+t_ignore = ' \t'
 
-    #####################################
-    #####################################
-    # Build the lexer
-    def build(self, **kwargs):
-        self.lexer = lex.lex(module=self, **kwargs)
 
-    # Test it output
-    def test(self, data):
-        self.lexer.input(data)
-        while True:
-            tok = self.lexer.token()
-            if not tok:
-                break
-            print(tok)
+######Global Variables#############
+def __init__(self):
+    pass
+
+
+#####END Global Variables############
+
+###########Action Rules##############
+#####################################
+# A regular expression rule with some action code
+
+# Note addition of self parameter since we're in a class
+def t_NUMBER(t):
+    r'\d+'
+    t.value = int(t.value)
+    return t
+
+
+# Define a rule so we can track line numbers
+def t_newline(t):
+    r'\n+'
+    t.lexer.lineno += len(t.value)
+
+
+# Error handling rule
+def t_error(t):
+    print("Illegal character '%s'" % t.value[0])
+    t.lexer.skip(1)
+
+
+#####################################
+#####################################
+# Build the lexer
+lexer = lex.lex(debug=True)
+
+
+# Test it output
+def test(data):
+    global lexer
+    lexer.input(data)
+    while True:
+        tok = lexer.token()
+        if not tok:
+            break
+        print(tok)

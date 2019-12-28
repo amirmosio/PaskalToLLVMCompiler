@@ -16,10 +16,10 @@ TOKEN_TYPES = [
 ]
 
 SYMBOLS = [
-    '+', '-', '*', '/' ,'=', '<', '>',
-    '[' , ']', '.', ',', '(', ')', ':',
+    '+', '-', '*', '/', '=', '<', '>',
+    '[', ']', '.', ',', '(', ')', ':',
     '^', '@', '{', '}', '$', '#', '&',
-    '%', '<<' ,'>>','**', '<>', '><',
+    '%', '<<', '>>', '**', '<>', '><',
     '<=', '>=', ':=', '+=', '-=', '*=',
     '/=', '(*', '*)', '(.', '.)', '//',
     ';', '='
@@ -33,28 +33,11 @@ DOUBLE_SYMBOLS = [
     '(.', '.)', '//'
 ]
 
-
-RESERVED_WORDS = [
-    'program', 'var', 'begin', 'end', 'type',
-    'procedure', 'uses', 'function', 'for', 'while', 'repeat',
-    'do', 'then', 'downto', 'to','if', 'else', 'array', 'of',
-    'not', 'or',  'mod', 'and', 'const', 'div','record', 'exit'
-]
-
-
-# matches reserverd_word to corresponding token_type
-RESERVED_WORD_DICT = {
-    'if': 'TK_IF',
-    'else': 'TK_ELSE',
-    'then': 'TK_THEN',
-    'for': 'TK_FOR',
-    'while': 'TK_WHILE',
-    'begin': 'TK_BEGIN',
-    'var': 'TK_VAR',
-    'end': 'TK_END',
-    'program': 'TK_PROGRAM',
-    'writeln': 'TK_WRITELN'
-}
+rsv_sys_function = ["main", "read", "write", "strlen"]
+rsv_sys_type = ["array", "boolean", "string", "char", "integer", "real"]
+rsv_sys_con = ["false", "true"]
+rsv_other = ["assign", "break", "begin", "continue", "do", "else", "end", "function", "procedure", "if", "of", "return",
+             "while", "var"]
 
 TK_TYPE_DICT = {
     'integer': 'TK_TYPE_INT',
@@ -90,9 +73,7 @@ SYMBOLS_DICT = {
 # Relation --> '=' | '<>' | '<' | '>' | '<=' | '>=' | in
 RELATIONS_DICT = {
 
-
 }
-
 
 # http://www.freepascal.org/docs-html/ref/refsu1.html#x12-110001.3.1
 TURBO_PASCAL_RESERVED_WORDS = []

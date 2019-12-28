@@ -9,6 +9,4 @@ data_test2 = "5*24"
 ############### end Test Strings ####################
 
 # Build the lexer and try it out
-m = scanner.Scanner()
-m.build()  # Build the lexer
-m.test(data_test2)  # Test it
+scanner.test(data_test2)  # Test it

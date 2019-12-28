@@ -40,7 +40,7 @@ for w in rsv_other:
 tokens = (
     'cCHAR', 'cINTEGER', 'cREAL', 'cBOO', 'cSTRING', 'oLP', 'oRP', 'oLB', 'oRB', 'oPLUS', 'oMINUS',
     'oMUL', 'oDIV', 'oASSIGN', 'oEQUAL', 'oLT', 'oGT', 'oLE', 'oGE', 'oUN_EQU', 'oCOMMA', 'oSEMI',
-    'oCOLON', 'oQUOTE', 'oDOTDOT', 'oDOT', 'yNAME', 'oAND', 'oOR', 'oXOR', 'oLOGICAL_AND', 'oLOGICAL_OR', 'oMOD',
+    'oCOLON', 'oQUOTE', 'oDOT_DOT', 'oDOT', 'yNAME', 'oAND', 'oOR', 'oXOR', 'oLOGICAL_AND', 'oLOGICAL_OR', 'oMOD',
     "oLOGICAL_NOT", "oUNARY_MINUS"
 )
 tokens += tuple(list(set(reserved_type.values())))
@@ -104,27 +104,21 @@ t_oRP = re.escape(r')')
 t_oLB = re.escape(r'[')
 t_oRB = re.escape(r']')
 
+t_oASSIGN = re.escape(r':=')
+t_oCOMMA = re.escape(r',')
+t_oSEMI = re.escape(r';')
+t_oCOLON = re.escape(r':')
+t_oQUOTE = re.escape(r"'")
+t_oDOT_DOT = re.escape(r'..')
+t_oDOT = re.escape(r'.')
 
-# t_oASSIGN = re.escape(r':=')
-# t_oCOMMA = re.escape(r',')
-# t_oSEMI = re.escape(r';')
-# t_oCOLON = re.escape(r':')
-# t_oQUOTE = re.escape(r"'")
-# t_oDOTDOT = re.escape(r'..')
-# t_oDOT = re.escape(r'.')
 
 @TOKEN(letter + alnum + r'*')
 def t_ID_or_KEYWORD(t):
-    if reserved.has_key(t.value):
-        # key=reserved[t]
-        # if key=='SYS_FUNCT' or key=='SYS_PROC':
-        #   t.value='sys_func'
-        # elif key=='SYS_CON':
-        #   t.value=
+    global reserved
+    if t.value in reserved.keys():
         t.type = reserved_type[t.value]
         return t
-    # else:
-    #   pass
     t.type = 'yNAME'
     return t
 
@@ -173,10 +167,13 @@ lexer = lex.lex()
 
 # Test it output
 def test(data):
+    result = []
     global lexer
     lexer.input(data)
     while True:
         tok = lexer.token()
+        result.append(tok)
         if not tok:
             break
         print(tok)
+    return result

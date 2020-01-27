@@ -1,4 +1,5 @@
 import lex as scanner
+import parser
 
 #################### test Strings ###################
 data_test1 = '''
@@ -29,3 +30,5 @@ def get_parse_table_detail():
 # Build the lexer and try it out
 tokens = scanner.test(data_test3)  # Test it
 Syntactic_and_Linguistic, actions, parse_table = get_parse_table_detail()
+parser = parser.Parser(Syntactic_and_Linguistic, actions, parse_table)
+parser.parse_tokens(tokens)

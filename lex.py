@@ -175,5 +175,4 @@ def test(data):
         result.append(tok)
         if not tok:
             break
-        print(tok)
     return result

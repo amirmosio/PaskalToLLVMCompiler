@@ -11,3 +11,15 @@ data_test3 = "a:array[ 12     :10] integer"
 
 # Build the lexer and try it out
 tokens = scanner.test(data_test3)  # Test it
+
+
+def get_parse_table():
+    file = open()
+    n, m = file.readline().split()
+    n = int(n)
+    m = int(m)
+    toekns = file.readline().split()
+    parse_table = []
+    for i in range(n):
+        row = file.readline().split("noSem")
+        parse_table.

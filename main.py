@@ -15,7 +15,7 @@ data_test3 = "a:array[ 12     :10] integer"
 
 def get_parse_table_detail():
     actions = {0: "error", 1: "shift", 2: "goto", 3: "goto_push", 4: "reduce", 5: "accept"}
-    file = open("/media/amir/Program/Documentwork/ProjectCode/Python Project/PaskalToLLVMCompiler/ParseTable.npt", "r")
+    file = open("ParseTable.npt", "r")
     n, m = file.readline().split()
     n = int(n)
     m = int(m)
@@ -32,3 +32,4 @@ tokens = scanner.test(data_test3)  # Test it
 Syntactic_and_Linguistic, actions, parse_table = get_parse_table_detail()
 parser = parser.Parser(Syntactic_and_Linguistic, actions, parse_table)
 parser.parse_tokens(tokens)
+print(parser.get_code_generated())  # this is the output code

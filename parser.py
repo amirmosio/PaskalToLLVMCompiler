@@ -21,6 +21,22 @@ class Parser:
         self.token_index = 0
         self.current_token = None
 
+    def declare_all_variables(self):
+        declare_flag = True
+        for token in self.tokens:
+            if token.value =="function":
+                declare_flag = False
+            if token.value == ":":
+                declare_flag = False
+            if declare_flag:
+                status = self.code_generator.symbol_table.declare_variable(token.value)
+                if status == -1:
+                    raise Exception("Variable has been defined before.")
+
+
+            if token.value == ";":
+                declare_flag = True
+
     def read_next_token(self):
         token = self.tokens[self.token_index]
         self.current_token = token

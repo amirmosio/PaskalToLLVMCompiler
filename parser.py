@@ -1,4 +1,5 @@
 from _collections import deque
+
 import code_generator
 
 
@@ -24,7 +25,34 @@ class Parser:
                 column_index = i
         return self.parse_table[parse_stack_top][column_index].split()
 
+    def proceed_conceptual_routines(self, conceptual_routines):
+        # there should be a lot if else here to call conceptual_routines functions
+        pass
+
+    def proceed_next_parse_state(self, action_type, grammar_number):
+        if action_type == "0":  # error
+            pass
+        elif action_type == "1":  # shift
+            self.parse_stack.push(grammar_number)
+        elif action_type == "2":  # goto
+            pass
+        elif action_type == "3":  # goto_push
+            pass
+        elif action_type == "4":  # reduce
+            # doubt about 0 or 1 for left or right hand side
+            for i in range(self.grammar_right_left_hand_side_size[grammar_number][0]):
+                self.parse_stack.pop()
+        elif action_type == "5":  # accept
+            pass
+
     def parse_tokens(self, tokens):
         self.parse_table.push(1)
         for token in tokens:
-            grammar = self.get_parse_table_grammar(token.value)
+            grammar = self.get_parse_table_grammar(word=token.value)
+            action_type = grammar[0]
+            grammar_number = grammar[1]
+            self.proceed_next_parse_state(action_type=action_type, grammar_number=grammar_number)
+            conceptual_routines = None
+            if len(grammar) == 3:
+                conceptual_routines = grammar[2]
+                self.proceed_conceptual_routines(conceptual_routines=conceptual_routines)

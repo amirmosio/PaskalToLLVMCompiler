@@ -10,3 +10,14 @@ https://github.com/dabeaz/ply
 https://github.com/brianwu02/pascal.py/tree/master/modules
 https://github.com/sodabeta7/Python-Pascal-Compiler/blob/master/frontend/lex_pas.py
 https://www.dabeaz.com/ply/ply.html
+
+
+a:integer;
+function hello():
+	begin
+	blah blah blah
+	end
+function main():
+	begin
+	blah blah blah
+	end

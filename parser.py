@@ -24,7 +24,7 @@ class Parser:
     def declare_all_variables(self):
         declare_flag = True
         for token in self.tokens:
-            if token.value =="function":
+            if token.value == "function":
                 declare_flag = False
             if token.value == ":":
                 declare_flag = False
@@ -32,7 +32,6 @@ class Parser:
                 status = self.code_generator.symbol_table.declare_variable(token.value)
                 if status == -1:
                     raise Exception("Variable has been defined before.")
-
 
             if token.value == ";":
                 declare_flag = True

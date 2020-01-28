@@ -22,6 +22,12 @@ class ArrayVariableDSC:
         self.type_size = None  # n bytes
 
 
+class FunctionVariableDSC:
+    def __init__(self):
+        self.pc_adress
+        self.call_pc_address = []
+
+
 class TypeDSC:
     def __init__(self):
         self.type = None

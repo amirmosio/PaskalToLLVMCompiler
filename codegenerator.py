@@ -1,26 +1,31 @@
 from _collections import deque
 
+import Models
 
-class Code_Generator:
+
+class CodeGenerator:
     def __init__(self):
         self.Code = []
 
         #### semantic stack stuff ####
         self.semantic_stack = deque()
 
+        #### symbol table stuff ####
+        self.symbol_table = Models.SymbolTable
+
     def proceed_conceptual_routines(self, conceptual_routines):
         if conceptual_routines == "push":
             self.push()
         elif conceptual_routines == "switch":
-            pass
+            self.switch()
         elif conceptual_routines == "sdscp":
-            pass
+            self.sdscp()
         elif conceptual_routines == "adscp":
-            pass
+            self.adscp()
         elif conceptual_routines == "ub":
-            pass
+            self.ub()
         elif conceptual_routines == "cadscp":
-            pass
+            self.cadscp()
         # there should be a lot if else here to call conceptual_routines functions
         pass
 

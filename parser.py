@@ -1,12 +1,11 @@
 from _collections import deque
 
-import Models
-import code_generator
+import codegenerator
 
 
 class Parser:
     def __init__(self, syntactic_and_linguistic, actions, parse_table, tokens):
-        self.code_generator = code_generator.Code_Generator()
+        self.code_generator = codegenerator.CodeGenerator()
 
         #### parse table stuff ####
         self.syntactic_and_linguistic = syntactic_and_linguistic
@@ -16,9 +15,6 @@ class Parser:
         #### parse stack stuff ####
         self.grammar_right_left_hand_side_size = []
         self.parse_stack = deque()
-
-        #### symbol table stuff ####
-        self.symbol_table = Models.SymbolTable
 
         #### next token ####
         self.tokens = tokens

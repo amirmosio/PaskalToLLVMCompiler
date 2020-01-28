@@ -19,12 +19,12 @@ def get_parse_table_detail():
     n, m = file.readline().split()
     n = int(n)
     m = int(m)
-    toekns = file.readline().split()
+    tokens = file.readline().split()
     parse_table = []
     for i in range(n):
         row = file.readline().split("NoSem")
         parse_table.append(row)
-    return toekns, actions, parse_table
+    return tokens, actions, parse_table
 
 
 # Build the lexer and try it out

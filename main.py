@@ -30,6 +30,6 @@ def get_parse_table_detail():
 # Build the lexer and try it out
 tokens = scanner.test(data_test3)  # Test it
 Syntactic_and_Linguistic, actions, parse_table = get_parse_table_detail()
-parser = parser.Parser(Syntactic_and_Linguistic, actions, parse_table)
-parser.parse_tokens(tokens)
+parser = parser.Parser(Syntactic_and_Linguistic, actions, parse_table, tokens=tokens)
+parser.parse_tokens()
 print(parser.code_generator.get_code())  # this is the output code

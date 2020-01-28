@@ -5,7 +5,7 @@ import code_generator
 
 
 class Parser:
-    def __init__(self, syntactic_and_linguistic, actions, parse_table):
+    def __init__(self, syntactic_and_linguistic, actions, parse_table, token):
         self.code_generator = code_generator.Code_Generator()
 
         #### parse table stuff ####
@@ -22,6 +22,14 @@ class Parser:
 
         #### symbol table stuff ####
         self.symbol_table = Models.SymbolTable
+
+        self.token = token
+        self.token_index = 0
+
+    def get_next_token(self):
+        token = self.token[self.token_index]
+        self.token_index += 1
+        return token
 
     def parse_tokens(self, tokens):
         self.parse_table.push(1)

@@ -25,3 +25,9 @@ class SymbolTable:
 
     def get_variable(self, variable_address):
         return self.variables[variable_address]
+
+
+class Grammar:
+    def __init__(self):
+        self.rhsl
+        self.lhs

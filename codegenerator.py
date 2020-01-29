@@ -79,7 +79,6 @@ class CodeGenerator:
     def multi(self):
         # TODO
         pass
-    def
 
     def fkw(self, string):
         var = self.symbol_table.get_variable(string)

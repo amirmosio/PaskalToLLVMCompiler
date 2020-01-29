@@ -37,6 +37,7 @@ class TypeDSC:
 class SymbolTable:
     def __init__(self):
         self.variables = {}
+        self.variable_counter = 0
 
     def declare_variable(self, name_id):
         old_value = self.variables.get(name_id, "undefined")
@@ -54,8 +55,37 @@ class SymbolTable:
     def get_variable(self, variable_address):
         return self.variables[variable_address]
 
+    def declare_new_variable(self):
+        name_id = "compiler_temp_variable" + str(self.variable_counter)
+        self.variable_counter += 1
+        return self.declare_variable(name_id=name_id)
+
+
+class ResultCode:
+    def __init__(self):
+        self.code = []
+
+    def add_code_line(self):
+        code_line = CodeLine()
+        self.code.append(code_line)
+        return len(self.code) - 1
+
+    def get_line_code(self, code_index):
+        if code_index >= len(self.code):
+            raise Exception("Line Code Index Error Occurred")
+        else:
+            return self.code[code_index]
+
 
 class Grammar:
     def __init__(self):
         self.rhsl
         self.lhs
+
+
+class CodeLine:
+    def __init__(self):
+        self.opcode = None
+        self.op1 = None
+        self.op2 = None
+        self.res = None

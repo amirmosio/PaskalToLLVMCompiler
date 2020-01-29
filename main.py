@@ -19,11 +19,20 @@ def get_parse_table_detail():
     n, m = file.readline().split()
     n = int(n)
     m = int(m)
-    tokens = file.readline().split()
     parse_table = []
+    tokens = file.readline().split()
+    parse_table.append(tokens)
     for i in range(n):
-        row = file.readline().split("NoSem")
-        parse_table.append(row)
+        row = file.readline().split()
+        grammars_row = [None] * (len(row) // 3)
+        for i in range(0, len(row), 3):
+            grammar = []
+            index = i // 3
+            grammar.append(row[i])
+            grammar.append(row[i + 1])
+            grammar.append(row[i + 2])
+            grammars_row[index] = grammar
+        parse_table.append(grammars_row)
     return tokens, actions, parse_table
 
 

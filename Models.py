@@ -38,16 +38,18 @@ class SymbolTable:
     def __init__(self):
         self.variables = {}
 
-    def declare_variable(self, id):
-        old_value = self.variables.get(id, "undefined")
+    def declare_variable(self, name_id):
+        old_value = self.variables.get(name_id, "undefined")
         if old_value == "undefined":
-            self.variables.push(id, Variable())
-            return id
+            var = Variable()
+            var.id = name_id
+            self.variables[name_id] = var
+            return name_id
         else:
             return -1
 
-    def get_variable(self, id):
-        return self.variables.get(id, "undefined")
+    def get_variable(self, name_id):
+        return self.variables.get(name_id, "undefined")
 
     def get_variable(self, variable_address):
         return self.variables[variable_address]

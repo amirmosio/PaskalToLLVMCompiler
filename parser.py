@@ -19,44 +19,45 @@ class Parser:
         #### next token ####
         self.tokens = tokens
         self.token_index = 0
-        self.current_token = None
+        self.declare_all_variables()
 
     def declare_all_variables(self):
-        declare_flag = True
         for token in self.tokens:
             if token.value == "function":
-                declare_flag = False
+                break
             if token.value == ":":
-                declare_flag = False
-            if declare_flag:
-                status = self.code_generator.symbol_table.declare_variable(token.value)
+                self.code_generator.in_dcls_flag = False
+            if self.code_generator.in_dcls_flag:
+                status = self.code_generator.symbol_table.declare_variable(name_id=token.value)
                 if status == -1:
                     raise Exception("Variable has been defined before.")
 
             if token.value == ";":
-                declare_flag = True
+                self.code_generator.in_dcls_flag = True
 
     def read_next_token(self):
         token = self.tokens[self.token_index]
-        self.current_token = token
+        self.code_generator.current_token = token
         self.token_index += 1
         return token
 
     def parse_tokens(self):
-        self.parse_table.push(1)
+        self.parse_stack.append(1)
         self.read_next_token()
 
-        grammar = self.get_parse_table_grammar(token_value=self.current_token.value)
-        action = grammar[0]
-        number = grammar[1]
-        while action != "5":
+        while True:
+
+            grammar = self.get_parse_table_grammar(token_type=self.code_generator.current_token.type)
+            action = grammar[0]
+            number = int(grammar[1])
+
             if action == "0":  # error
-                pass
+                raise Exception("Syntax Error Occurred")
             elif action == "1":  # shift
-                self.parse_stack.push(number)
+                self.parse_stack.append(number)
                 self.read_next_token()
             elif action == "2":  # goto ????
-                self.parse_stack.push(number)
+                self.parse_stack.append(number)
             elif action == "3":  # goto_push
                 pass
             elif action == "4":  # reduce
@@ -64,14 +65,16 @@ class Parser:
                 self.code_generator.proceed_conceptual_routines(grammar[2])
                 for i in range(self.grammar_right_left_hand_side_size[number][0]):
                     self.parse_stack.pop()
-                # self.parse_stack.push(self.get_parse_table_grammar())
+                # self.parse_stack.append(self.get_parse_table_grammar())
             elif action == "5":  # accept
-                pass
+                break
 
-    def get_parse_table_grammar(self, token_value):
-        parse_stack_top = self.parse_stack.top()
+    def get_parse_table_grammar(self, token_type):
+        parse_stack_top = self.parse_stack[-1]
         column_index = -1
         for i in range(len(self.syntactic_and_linguistic)):
-            if self.syntactic_and_linguistic[i] == token_value:
+            if self.syntactic_and_linguistic[i] == token_type:
                 column_index = i
-        return self.parse_table[parse_stack_top][column_index].split()
+        if column_index == -1:
+            raise Exception("Syntax Error Occurred")
+        return self.parse_table[parse_stack_top][column_index]

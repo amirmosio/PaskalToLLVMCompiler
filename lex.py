@@ -40,7 +40,7 @@ for w in rsv_other:
 tokens = (
     'cCHAR', 'cINTEGER', 'cREAL', 'cBOO', 'cSTRING', 'oLP', 'oRP', 'oLB', 'oRB', 'oPLUS', 'oMINUS',
     'oMUL', 'oDIV', 'oASSIGN', 'oEQUAL', 'oLT', 'oGT', 'oLE', 'oGE', 'oUN_EQU', 'oCOMMA', 'oSEMI',
-    'oCOLON', 'oQUOTE', 'oDOT_DOT', 'oDOT', 'yNAME', 'oAND', 'oOR', 'oXOR', 'oLOGICAL_AND', 'oLOGICAL_OR', 'oMOD',
+    'oCOLON', 'oQUOTE', 'oDOT_DOT', 'oDOT', 'id', 'oAND', 'oOR', 'oXOR', 'oLOGICAL_AND', 'oLOGICAL_OR', 'oMOD',
     "oLOGICAL_NOT", "oUNARY_MINUS"
 )
 tokens += tuple(list(set(reserved_type.values())))
@@ -119,7 +119,7 @@ def t_ID_or_KEYWORD(t):
     if t.value in reserved.keys():
         t.type = reserved_type[t.value]
         return t
-    t.type = 'yNAME'
+    t.type = 'id'
     return t
 
 
@@ -172,8 +172,8 @@ def test(data):
     lexer.input(data)
     while True:
         tok = lexer.token()
-        result.append(tok)
         if not tok:
             break
+        result.append(tok)
         print(tok)
     return result

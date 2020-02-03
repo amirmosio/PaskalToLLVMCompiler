@@ -76,6 +76,18 @@ class ResultCode:
         else:
             return self.code[code_index]
 
+    def set_opcode(self, code_index, opcode):
+        self.code.opcode = opcode
+
+    def set_op1(self, code_index, op1):
+        self.code.op1 = op1
+
+    def set_op2(self, code_index, op2):
+        self.code.op2 = op2
+
+    def set_result(self, code_index, res):
+        self.code.res = res
+
 
 class Grammar:
     def __init__(self):

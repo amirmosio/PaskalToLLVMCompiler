@@ -44,14 +44,19 @@ class CodeGenerator:
             self.assign()
         elif conceptual_routines == "array":
             self.assign()
+        elif conceptual_routines == "jz":
+            self.jz()
+        elif conceptual_routines == "compjz":
+            self.compjz()
+        elif conceptual_routines == "jpcompjz":
+            self.jpcompjz()
+        elif conceptual_routines == "compjp":
+            self.compjp()
         # there should be a lot if else here to call conceptual_routines functions
         pass
 
     def get_code(self):
         return self.result_code.code
-
-    def add_code(self, code_line):
-        self.Code.append(code_line)
 
     ####################################
     ######## conceptual_routines #######
@@ -94,12 +99,42 @@ class CodeGenerator:
         self.symbol_table.get_variable(array_name_id).dsc = array_dsc
 
     def add(self):
-        # TODO
-        pass
+        name_id_op1 = self.semantic_stack.pop()
+        var_op1 = self.symbol_table.get_variable(name_id_op1)
+        name_id_op2 = self.semantic_stack.pop()
+        var_op2 = self.symbol_table.get_variable(name_id_op2)
+
+        #### add code ####
+        code_index = self.result_code.add_code_line()
+        code_line = self.result_code.get_line_code(code_index=code_index)
+        code_line.opcode = "+"
+        code_line.op1 = var_op1.dsc.address
+        code_line.op2 = var_op2.dsc.address
+        temp_name_id = self.symbol_table.declare_new_variable()
+        temp_var = self.symbol_table.get_variable(temp_name_id)
+        code_line.res = temp_var.dsc.address
+        #### end add code ####
+
+        self.semantic_stack.append(temp_name_id)
 
     def mult(self):
-        # TODO
-        pass
+        name_id_op1 = self.semantic_stack.pop()
+        var_op1 = self.symbol_table.get_variable(name_id_op1)
+        name_id_op2 = self.semantic_stack.pop()
+        var_op2 = self.symbol_table.get_variable(name_id_op2)
+
+        #### add code ####
+        code_index = self.result_code.add_code_line()
+        code_line = self.result_code.get_line_code(code_index=code_index)
+        code_line.opcode = "/"
+        code_line.op1 = var_op1.dsc.address
+        code_line.op2 = var_op2.dsc.address
+        temp_name_id = self.symbol_table.declare_new_variable()
+        temp_var = self.symbol_table.get_variable(temp_name_id)
+        code_line.res = temp_var.dsc.address
+        #### end add code ####
+
+        self.semantic_stack.append(temp_name_id)
 
     def assign(self):
         # TODO
@@ -107,9 +142,80 @@ class CodeGenerator:
 
     def array(self):
         index_name_id = self.semantic_stack.pop()
+        index_var = self.symbol_table.get_variable(index_name_id)
+        index_var_address = index_var.dsc.address
+
         array_name_id = self.semantic_stack.pop()
-        # var =
+        array_var = self.symbol_table.get_variable(array_name_id)
+        type_size = array_var.dsc.type_size
+        array_length = array_var.dsc.size
+        array_first_address = array_var.dsc.address
+
+        #### check array index out of rage ####
+        code_index = self.result_code.add_code_line()
+        code_line = self.result_code.get_line_code(code_index=code_index)
+        code_line.opcode = "<"
+        code_line.op1 = index_var_address
+        code_line.op2 = "#" + str(array_length)
+        code_line.res = "index_out_of_range"
+
+        #### end checking index range ####
+
+        #########################
+        #### element_address ####
+        code_index = self.result_code.add_code_line()
+        code_line = self.result_code.get_line_code(code_index=code_index)
+        code_line.opcode = "*"
+        code_line.op1 = index_var_address
+        code_line.op2 = "#" + str(type_size)
+        temp_name_id = self.symbol_table.declare_new_variable()
+        temp_var = self.symbol_table.get_variable(temp_name_id)
+        code_line.res = temp_var.dsc.address
+
+        code_index = self.result_code.add_code_line()
+        code_line = self.result_code.get_line_code(code_index=code_index)
+        code_line.opcode = "+"
+        code_line.op1 = temp_var.dsc.address
+        code_line.op2 = array_first_address
+        code_line.res = temp_var.dsc.address
+        self.semantic_stack.append(temp_name_id)
+        #### end element address ####
+        #############################
         pass
+
+    def jz(self):
+        boolean_name_id = self.semantic_stack.pop()
+        boolean_var = self.symbol_table.get_variable(boolean_name_id)
+
+        #### jz jump #####
+        code_index = self.result_code.add_code_line()
+        code_line = self.result_code.get_line_code(code_index=code_index)
+        code_line.opcode = "jz"
+        code_line.op1 = boolean_var.dsc.address
+        #### end jz jump ####
+
+        self.semantic_stack.append(code_index)
+
+    def compjz(self):
+        code_index = self.semantic_stack.pop()
+        jz_code_line = self.result_code.get_line_code(code_index=code_index)
+        jz_code_line.op2 = len(self.result_code.code)
+
+    def jpcompjz(self):
+        jump_code_index = self.result_code.add_code_line()
+        jump_code_line = self.result_code.get_line_code(jump_code_index)
+        jump_code_line.opcode = "jp"
+
+        code_index = self.semantic_stack.pop()
+        jz_code_line = self.result_code.get_line_code(code_index=code_index)
+        jz_code_line.op2 = len(self.result_code.code)
+
+        self.semantic_stack.append(jump_code_index)
+
+    def compjp(self):
+        jump_code_index = self.semantic_stack.pop()
+        jump_code_line = self.result_code.get_line_code(code_index=jump_code_index)
+        jump_code_line.op1 = len(self.result_code.code)
 
     def fkw(self, string):
         var = self.symbol_table.get_variable(string)

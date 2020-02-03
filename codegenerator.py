@@ -38,8 +38,16 @@ class CodeGenerator:
             self.cadscp()
         elif conceptual_routines == "add":
             self.add()
+        elif conceptual_routines == "minus":
+            self.minus()
         elif conceptual_routines == "mult":
             self.mult()
+        elif conceptual_routines == "divide":
+            self.divide()
+        elif conceptual_routines == "and":
+            self.c_and()
+        elif conceptual_routines == "or":
+            self.c_or()
         elif conceptual_routines == "assign":
             self.assign()
         elif conceptual_routines == "array":
@@ -117,22 +125,98 @@ class CodeGenerator:
 
         self.semantic_stack.append(temp_name_id)
 
+    def minus(self):
+        name_id_op1 = self.semantic_stack.pop()
+        var_op1 = self.symbol_table.get_variable(name_id_op1)
+        name_id_op2 = self.semantic_stack.pop()
+        var_op2 = self.symbol_table.get_variable(name_id_op2)
+
+        #### minus code ####
+        code_index = self.result_code.add_code_line()
+        code_line = self.result_code.get_line_code(code_index=code_index)
+        code_line.opcode = "-"
+        code_line.op1 = var_op2.dsc.address
+        code_line.op2 = var_op1.dsc.address
+        temp_name_id = self.symbol_table.declare_new_variable()
+        temp_var = self.symbol_table.get_variable(temp_name_id)
+        code_line.res = temp_var.dsc.address
+        #### end minus code ####
+
+        self.semantic_stack.append(temp_name_id)
+
     def mult(self):
         name_id_op1 = self.semantic_stack.pop()
         var_op1 = self.symbol_table.get_variable(name_id_op1)
         name_id_op2 = self.semantic_stack.pop()
         var_op2 = self.symbol_table.get_variable(name_id_op2)
 
-        #### add code ####
+        #### mult code ####
         code_index = self.result_code.add_code_line()
         code_line = self.result_code.get_line_code(code_index=code_index)
-        code_line.opcode = "/"
+        code_line.opcode = "*"
         code_line.op1 = var_op1.dsc.address
         code_line.op2 = var_op2.dsc.address
         temp_name_id = self.symbol_table.declare_new_variable()
         temp_var = self.symbol_table.get_variable(temp_name_id)
         code_line.res = temp_var.dsc.address
-        #### end add code ####
+        #### end mult code ####
+
+        self.semantic_stack.append(temp_name_id)
+
+    def divide(self):
+        name_id_op1 = self.semantic_stack.pop()
+        var_op1 = self.symbol_table.get_variable(name_id_op1)
+        name_id_op2 = self.semantic_stack.pop()
+        var_op2 = self.symbol_table.get_variable(name_id_op2)
+
+        #### div code ####
+        code_index = self.result_code.add_code_line()
+        code_line = self.result_code.get_line_code(code_index=code_index)
+        code_line.opcode = "/"
+        code_line.op1 = var_op2.dsc.address
+        code_line.op2 = var_op1.dsc.address
+        temp_name_id = self.symbol_table.declare_new_variable()
+        temp_var = self.symbol_table.get_variable(temp_name_id)
+        code_line.res = temp_var.dsc.address
+        #### end div code ####
+
+        self.semantic_stack.append(temp_name_id)
+
+    def c_and(self):
+        name_id_op1 = self.semantic_stack.pop()
+        var_op1 = self.symbol_table.get_variable(name_id_op1)
+        name_id_op2 = self.semantic_stack.pop()
+        var_op2 = self.symbol_table.get_variable(name_id_op2)
+
+        #### and code ####
+        code_index = self.result_code.add_code_line()
+        code_line = self.result_code.get_line_code(code_index=code_index)
+        code_line.opcode = "&&"  # TODO
+        code_line.op1 = var_op1.dsc.address
+        code_line.op2 = var_op2.dsc.address
+        temp_name_id = self.symbol_table.declare_new_variable()
+        temp_var = self.symbol_table.get_variable(temp_name_id)
+        code_line.res = temp_var.dsc.address
+        #### end and code ####
+
+        self.semantic_stack.append(temp_name_id)
+
+    def c_or(self):
+        name_id_op1 = self.semantic_stack.pop()
+        var_op1 = self.symbol_table.get_variable(name_id_op1)
+        name_id_op2 = self.semantic_stack.pop()
+        var_op2 = self.symbol_table.get_variable(name_id_op2)
+
+        #### and code ####
+        code_index = self.result_code.add_code_line()
+        code_line = self.result_code.get_line_code(code_index=code_index)
+        code_line.opcode = "||"  # TODO
+        code_line.op1 = var_op1.dsc.address
+        code_line.op2 = var_op2.dsc.address
+        temp_name_id = self.symbol_table.declare_new_variable()
+        temp_var = self.symbol_table.get_variable(temp_name_id)
+        code_line.res = temp_var.dsc.address
+        #### end and code ####
 
         self.semantic_stack.append(temp_name_id)
 
@@ -216,6 +300,10 @@ class CodeGenerator:
         jump_code_index = self.semantic_stack.pop()
         jump_code_line = self.result_code.get_line_code(code_index=jump_code_index)
         jump_code_line.op1 = len(self.result_code.code)
+
+    #####################################
+    ###### end conceptual routines ######
+    #####################################
 
     def fkw(self, string):
         var = self.symbol_table.get_variable(string)

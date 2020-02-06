@@ -85,7 +85,7 @@ class CodeGenerator:
         simple_dsc.address = self.adrc
         simple_dsc.size = var_type.dsc.size
         self.adrc += simple_dsc.size
-        name_id = self.semantic_stack.pop()
+        name_id = self.semantic_stack[-1]
         var = self.symbol_table.get_variable(name_id=name_id)
         var.dsc = simple_dsc
 
@@ -97,6 +97,9 @@ class CodeGenerator:
         code_line.op2 = ' alloca '
         code_line.res = self.convert_var_type(var_type)
         #### end declare code ####
+
+    def pop_declare_name_id(self):
+        name_id = self.semantic_stack.pop()
 
     def adscp(self):
         array_dsc = Models.ArrayVariableDSC
@@ -115,7 +118,7 @@ class CodeGenerator:
         array_dsc.type = self.current_token.value
         array_dsc.type_size = self.symbol_table.get_variable(self.current_token.value).dsc.size
         self.adrc += array_dsc.size * array_dsc.type_size
-        array_name_id = self.semantic_stack.pop()
+        array_name_id = self.semantic_stack[-1]
         self.symbol_table.get_variable(array_name_id).dsc = array_dsc
 
         #### array declare code ####
@@ -124,6 +127,7 @@ class CodeGenerator:
         code_line.result = '%' + array_name_id
         code_line.operation = "alloca"
         code_line.op1 = '[' + array_dsc.size + ' * ' + self.convert_var_type(array_dsc.type) + ']'
+        #### end array declare code ####
 
     def add(self):
         name_id_op1 = self.semantic_stack.pop()

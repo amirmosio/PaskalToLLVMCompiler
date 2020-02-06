@@ -2,12 +2,12 @@ import lex as scanner
 import parser
 
 #################### test Strings ###################
-data_test1 = '''
- 3 + 4 * 10
-   + -20 *2
- '''
-data_test2 = "5*24"
-data_test3 = "a:array[ 12     :10] integer"
+file = open("input/in1.txt", "r")
+input_code = ""
+for line in file:
+    input_code += line
+
+file.close()
 
 
 ############### end Test Strings ####################
@@ -37,7 +37,9 @@ def get_parse_table_detail():
 
 
 # Build the lexer and try it out
-tokens = scanner.test(data_test3)  # Test it
+
+
+tokens = scanner.test(input_code)  # Test it
 Syntactic_and_Linguistic, actions, parse_table = get_parse_table_detail()
 parser = parser.Parser(Syntactic_and_Linguistic, actions, parse_table, tokens=tokens)
 parser.parse_tokens()

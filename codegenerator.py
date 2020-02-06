@@ -118,6 +118,13 @@ class CodeGenerator:
         array_name_id = self.semantic_stack.pop()
         self.symbol_table.get_variable(array_name_id).dsc = array_dsc
 
+        #### array declare code ####
+        code_index = self.result_code.add_code_line()
+        code_line = self.result_code.get_line_code(code_index=code_index)
+        code_line.result = '%' + array_name_id
+        code_line.operation = "alloca"
+        code_line.op1 = '[' + array_dsc.size + ' * ' + self.convert_var_type(array_dsc.type) + ']'
+
     def add(self):
         name_id_op1 = self.semantic_stack.pop()
         var_op1 = self.symbol_table.get_variable(name_id_op1)
@@ -259,8 +266,15 @@ class CodeGenerator:
         pass
 
     def assign(self):
-        # TODO
-        pass
+        res_name_id = self.semantic_stack.pop()
+        name_id = self.semantic_stack.pop()
+
+        #### assign code ####
+        code_index = self.result_code.add_code_line()
+        code_line = self.result_code.get_line_code()
+        code_line.result = '%' + name_id
+        code_line.op1 = '%' + res_name_id
+        #### end assign code ####
 
     def array(self):
         index_name_id = self.semantic_stack.pop()

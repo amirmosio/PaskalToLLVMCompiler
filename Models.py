@@ -97,7 +97,8 @@ class Grammar:
 
 class CodeLine:
     def __init__(self):
-        self.opcode = None
+        self.result = None
+        self.operation = None
+        self.optype = None
         self.op1 = None
         self.op2 = None
-        self.res = None

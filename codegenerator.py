@@ -48,6 +48,8 @@ class CodeGenerator:
             self.c_and()
         elif conceptual_routines == "or":
             self.c_or()
+        elif conceptual_routines == "not":
+            self.c_not()
         elif conceptual_routines == "assign":
             self.assign()
         elif conceptual_routines == "array":
@@ -84,7 +86,17 @@ class CodeGenerator:
         simple_dsc.size = var_type.dsc.size
         self.adrc += simple_dsc.size
         name_id = self.semantic_stack.pop()
-        self.symbol_table.get_variable(name_id=name_id).dsc = simple_dsc
+        var = self.symbol_table.get_variable(name_id=name_id)
+        var.dsc = simple_dsc
+
+        #### declare code ####
+        code_index = self.result_code.add_code_line()
+        code_line = self.result_code.get_line_code(code_index=code_index)
+        code_line.opcode = '%' + name_id
+        code_line.op1 = '='
+        code_line.op2 = ' alloca '
+        code_line.res = self.convert_var_type(var_type)
+        #### end declare code ####
 
     def adscp(self):
         array_dsc = Models.ArrayVariableDSC
@@ -115,12 +127,16 @@ class CodeGenerator:
         #### add code ####
         code_index = self.result_code.add_code_line()
         code_line = self.result_code.get_line_code(code_index=code_index)
-        code_line.opcode = "+"
-        code_line.op1 = var_op1.dsc.address
-        code_line.op2 = var_op2.dsc.address
+
         temp_name_id = self.symbol_table.declare_new_variable()
         temp_var = self.symbol_table.get_variable(temp_name_id)
-        code_line.res = temp_var.dsc.address
+        code_line.result = '%' + temp_var.id
+
+        code_line.operation = 'add'
+        code_line.optype = var_op1.dsc.type
+        code_line.op1 = '%' + var_op1.id
+        code_line.op2 = '%' + var_op2.id
+
         #### end add code ####
 
         self.semantic_stack.append(temp_name_id)
@@ -134,12 +150,16 @@ class CodeGenerator:
         #### minus code ####
         code_index = self.result_code.add_code_line()
         code_line = self.result_code.get_line_code(code_index=code_index)
-        code_line.opcode = "-"
-        code_line.op1 = var_op2.dsc.address
-        code_line.op2 = var_op1.dsc.address
+
         temp_name_id = self.symbol_table.declare_new_variable()
         temp_var = self.symbol_table.get_variable(temp_name_id)
-        code_line.res = temp_var.dsc.address
+        code_line.result = '%' + temp_var.id
+
+        code_line.operation = "sub"
+        code_line.optype = var_op1.dsc.type
+        code_line.op1 = '%' + var_op2.id
+        code_line.op2 = '%' + var_op1.id
+
         #### end minus code ####
 
         self.semantic_stack.append(temp_name_id)
@@ -153,12 +173,16 @@ class CodeGenerator:
         #### mult code ####
         code_index = self.result_code.add_code_line()
         code_line = self.result_code.get_line_code(code_index=code_index)
-        code_line.opcode = "*"
-        code_line.op1 = var_op1.dsc.address
-        code_line.op2 = var_op2.dsc.address
+
         temp_name_id = self.symbol_table.declare_new_variable()
         temp_var = self.symbol_table.get_variable(temp_name_id)
-        code_line.res = temp_var.dsc.address
+        code_line.result = '%' + temp_var.id
+
+        code_line.operation = 'mul'
+        code_line.optype = var_op1.dsc.type
+        code_line.op1 = '%' + var_op1.id
+        code_line.op2 = '%' + var_op2.id
+
         #### end mult code ####
 
         self.semantic_stack.append(temp_name_id)
@@ -172,12 +196,16 @@ class CodeGenerator:
         #### div code ####
         code_index = self.result_code.add_code_line()
         code_line = self.result_code.get_line_code(code_index=code_index)
-        code_line.opcode = "/"
-        code_line.op1 = var_op2.dsc.address
-        code_line.op2 = var_op1.dsc.address
+
         temp_name_id = self.symbol_table.declare_new_variable()
         temp_var = self.symbol_table.get_variable(temp_name_id)
-        code_line.res = temp_var.dsc.address
+        code_line.res = '%' + temp_var.id
+
+        code_line.operation = 'div'
+        code_line.optype = var_op1.dsc.type
+        code_line.op1 = '%' + var_op2.id
+        code_line.op2 = '%' + var_op1.id
+
         #### end div code ####
 
         self.semantic_stack.append(temp_name_id)
@@ -191,12 +219,15 @@ class CodeGenerator:
         #### and code ####
         code_index = self.result_code.add_code_line()
         code_line = self.result_code.get_line_code(code_index=code_index)
-        code_line.opcode = "&&"  # TODO
-        code_line.op1 = var_op1.dsc.address
-        code_line.op2 = var_op2.dsc.address
+
         temp_name_id = self.symbol_table.declare_new_variable()
         temp_var = self.symbol_table.get_variable(temp_name_id)
-        code_line.res = temp_var.dsc.address
+        code_line.result = '%' + temp_var.id
+
+        code_line.operation = "&&"  # TODO
+        code_line.optype = var_op1.dsc.type
+        code_line.op1 = '%' + var_op1.id
+        code_line.op2 = '%' + var_op2.id
         #### end and code ####
 
         self.semantic_stack.append(temp_name_id)
@@ -210,15 +241,22 @@ class CodeGenerator:
         #### and code ####
         code_index = self.result_code.add_code_line()
         code_line = self.result_code.get_line_code(code_index=code_index)
-        code_line.opcode = "||"  # TODO
-        code_line.op1 = var_op1.dsc.address
-        code_line.op2 = var_op2.dsc.address
+
         temp_name_id = self.symbol_table.declare_new_variable()
         temp_var = self.symbol_table.get_variable(temp_name_id)
-        code_line.res = temp_var.dsc.address
+        code_line.result = '%' + temp_var.id
+
+        code_line.operation = "||"  # TODO
+        code_line.optype = var_op1.dsc.type
+        code_line.op1 = var_op1.id
+        code_line.op2 = var_op2.id
         #### end and code ####
 
         self.semantic_stack.append(temp_name_id)
+
+    def c_not(self):
+        # TODO
+        pass
 
     def assign(self):
         # TODO
@@ -318,3 +356,12 @@ class CodeGenerator:
                     raise Exception("Error Occurred")
                 else:
                     self.stp = string
+
+    def convert_var_type(self, var_type):
+        if var_type == "integer":
+            return "i32"
+        elif var_type == "long":
+            return 'i1000'
+        elif var_type == "real":
+            return 'float'
+        # TODO

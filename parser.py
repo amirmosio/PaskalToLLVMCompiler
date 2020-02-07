@@ -13,7 +13,7 @@ class Parser:
         self.parse_table = parse_table
 
         #### parse stack stuff ####
-        self.grammar_right_left_hand_side_size = {'64': 2, '56': 2, '59': 2}
+        self.grammar_right_left_hand_side_size = {'64': 2, '56': 2, '59': 2, '61': 3, '57': 2, '66': 3, '70': 3}
         self.parse_stack = deque()
 
         #### next token ####

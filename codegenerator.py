@@ -97,7 +97,18 @@ class CodeGenerator:
         self.stp = self.get_last_token().value
 
     def pushconst(self):
-        self.semantic_stack.append(self.get_pre_current_token().value)
+        temp_name_id = self.symbol_table.declare_new_variable()
+        self.semantic_stack.append(temp_name_id)
+        temp_var = self.symbol_table.get_variable(temp_name_id)
+        const_value = self.get_pre_current_token().value
+
+        #### assign constant code ####
+        code_index = self.result_code.add_code_line()
+        code_line = self.result_code.get_line_code(code_index=code_index)
+        code_line.result = "%" + temp_name_id
+        code_line.operation = "="
+        code_line.op1 = str(const_value)
+        #### end assign constant code ####
 
     def switch(self):
         self.in_dcls_flag = not self.in_dcls_flag
@@ -329,9 +340,9 @@ class CodeGenerator:
 
         #### assign code ####
         code_index = self.result_code.add_code_line()
-        code_line = self.result_code.get_line_code()
+        code_line = self.result_code.get_line_code(code_index=code_index)
         code_line.result = '%' + name_id
-        code_line.operation = "+"
+        code_line.operation = "="
         code_line.op1 = '%' + res_name_id
         #### end assign code ####
 
@@ -435,7 +446,7 @@ class CodeGenerator:
             return "i32"
         elif var_type == "long":
             return 'i1000'
-        elif var_type == "real":
+        elif var_type == "float":
             return 'float'
         # TODO
 

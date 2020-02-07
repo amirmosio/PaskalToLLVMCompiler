@@ -4,10 +4,10 @@
 # # tokenizer for a simple expression evaluator for
 # # numbers and +,-,*,/
 # # ------------------------------------------------------------
-import ply.lex as lex
 import re
+
+import ply.lex as lex
 from ply.lex import TOKEN
-import tokens_and_rules as tk
 
 rsv_sys_function = ["main", "read", "write", "strlen"]
 rsv_sys_type = ["array", "boolean", "string", "char", "integer", "real"]
@@ -73,7 +73,8 @@ def t_cREAL(t):
 
 
 t_cCHAR = r"'([^']|\")'"
-t_cSTRING = r"\'(\\.|[^\'])(\\.|[^\'])+\'"
+# t_cSTRING = r"\'(\\.|[^\'])(\\.|[^\'])+\'"
+t_cSTRING = r"\'[^']*\'"
 
 # bitwise
 t_oAND = re.escape(r'&')
@@ -128,13 +129,6 @@ def t_ID_or_KEYWORD(t):
 # A string containing ignored characters (spaces and tabs)
 t_ignore = ' \t'
 
-
-######Global Variables#############
-def __init__(self):
-    pass
-
-
-#####END Global Variables############
 
 ###########Action Rules##############
 #####################################

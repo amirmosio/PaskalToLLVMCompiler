@@ -1,9 +1,5 @@
 function main() : integer
 begin
-    a : integer := 2 ;
-    b : integer := 3 ;
-    c : float ;
-    c := b / a ;
-    write("not equal ! ") ;
+    write('hello world !') ;
     return 0 ;
 end

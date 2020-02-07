@@ -20,6 +20,9 @@ class CodeGenerator:
         #### current token ####
         self.current_token = []
 
+        #### arg counter ####
+        self.arg_count = 0
+
         #### address allocated memory for array and variables ####
         # self.adrc = 0
 
@@ -83,6 +86,14 @@ class CodeGenerator:
             self.jpcompjz()
         elif conceptual_routines == "compjp":
             self.compjp()
+        elif conceptual_routines == "pusharg":
+            self.pusharg()
+        elif conceptual_routines == 'callfunc':
+            self.callfunc()
+        elif conceptual_routines == 'retfunc':
+            self.retfunc()
+        elif conceptual_routines == "retdscp":
+            self.retdscp()
         # there should be a lot if else here to call conceptual_routines functions
         pass
 
@@ -95,6 +106,51 @@ class CodeGenerator:
     def push(self):
         self.semantic_stack.append(self.get_last_token().value)
         self.stp = self.get_last_token().value
+
+    def retfunc(self):
+        #### add return func code ####
+        code_index = self.result_code.add_code_line()
+        code_line = self.result_code.get_line_code(code_index=code_index)
+        code_line.result = "ret"
+        #### end code return ####
+
+    def retdscp(self):
+        ret_name_id = self.semantic_stack.pop()
+        code_index = len(self.result_code.code) - 1
+        code_line = self.result_code.get_line_code(code_index=code_index)
+        code_line.op1 = "@" + ret_name_id
+
+    def pusharg(self):
+        temp_name_id = self.symbol_table.declare_new_variable()
+        self.semantic_stack.append(temp_name_id)
+        temp_var = self.symbol_table.get_variable(temp_name_id)
+        const_value = self.get_pre_current_token().value
+
+        #### assign constant code ####
+        code_index = self.result_code.add_code_line()
+        code_line = self.result_code.get_line_code(code_index=code_index)
+        code_line.result = "%" + temp_name_id
+        code_line.operation = "="
+        code_line.op1 = str(const_value)
+        #### end assign constant code ####
+
+    def callfunc(self):
+        args = self.get_call_func_arg()
+        self.arg_count = 0
+
+        func_name = self.semantic_stack.pop()
+
+        #### call func ####
+        code_index = self.result_code.add_code_line()
+        code_line = self.result_code.get_line_code(code_index)
+        code_line.result = ""
+        code_line.operation = "="
+        code_line.optype = "call"
+        code_line.op1 = "@" + func_name
+        code_line.op2 = "(" + args + ")"
+        #### end call func ####
+
+        pass
 
     def pushconst(self):
         temp_name_id = self.symbol_table.declare_new_variable()
@@ -275,7 +331,7 @@ class CodeGenerator:
 
         temp_name_id = self.symbol_table.declare_new_variable()
         temp_var = self.symbol_table.get_variable(temp_name_id)
-        code_line.res = '%' + temp_var.id
+        code_line.result = '%' + temp_var.id
 
         code_line.operation = 'div'
         code_line.optype = var_op1.dsc.type
@@ -453,3 +509,20 @@ class CodeGenerator:
     def convert_arguments(self, argument_list):
         # TODO
         return ""
+
+    def convert_defined_function(self, func_name):
+        if func_name == "write":
+            return "@" + "printf"
+        elif func_name == "read":
+            return "@" + "scanf"
+        else:
+            return "@" + func_name
+
+    def get_call_func_arg(self):
+        result = ""
+        for i in range(self.arg_count):
+            arg = self.semantic_stack.pop()
+            result += arg + ","
+        if self.arg_count != 0:
+            result = result[0:len(result) - 1]
+        return result

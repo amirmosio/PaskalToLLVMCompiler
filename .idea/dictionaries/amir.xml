@@ -26,7 +26,12 @@
       <w>opcode</w>
       <w>optype</w>
       <w>paskal</w>
+      <w>printf</w>
+      <w>pusharg</w>
       <w>pushconst</w>
+      <w>retdscp</w>
+      <w>retfunc</w>
+      <w>scanf</w>
       <w>sdscp</w>
     </words>
   </dictionary>

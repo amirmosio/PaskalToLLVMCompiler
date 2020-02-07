@@ -21,7 +21,7 @@ def get_parse_table_detail():
     m = int(m)
     parse_table = []
     tokens = file.readline().split()
-    parse_table.append(tokens)
+    # parse_table.append(tokens)
     for i in range(n):
         row = file.readline().split()
         grammars_row = [None] * (len(row) // 3)

@@ -18,16 +18,35 @@ class CodeGenerator:
         self.in_dcls_flag = True
 
         #### current token ####
-        self.current_token = None
+        self.current_token = []
 
         #### address allocated memory for array and variables ####
-        self.adrc = 0
+        # self.adrc = 0
+
+    def get_pre_current_token(self):
+        return self.current_token[0]
+
+    def get_last_token(self):
+        return self.current_token[-1]
+
+    def set_next_token(self, token):
+        if len(self.current_token) == 2:
+            del self.current_token[0]
+            self.current_token.append(token)
+        else:
+            self.current_token.append(token)
 
     def proceed_conceptual_routines(self, conceptual_routines):
         if conceptual_routines == "push":
             self.push()
+        elif conceptual_routines == "pushconst":
+            self.pushconst()
         elif conceptual_routines == "switch":
             self.switch()
+        elif conceptual_routines == "beginblock":
+            self.begin_block()
+        elif conceptual_routines == "endblock":
+            self.end_block()
         elif conceptual_routines == "sdscp":
             self.sdscp()
         elif conceptual_routines == "adscp":
@@ -36,6 +55,8 @@ class CodeGenerator:
             self.ub()
         elif conceptual_routines == "cadscp":
             self.cadscp()
+        elif conceptual_routines == "funcdscp":
+            self.funcdscp()
         elif conceptual_routines == "add":
             self.add()
         elif conceptual_routines == "minus":
@@ -72,30 +93,64 @@ class CodeGenerator:
     ######## conceptual_routines #######
     ###################################
     def push(self):
-        self.semantic_stack.append(self.stp)
+        self.semantic_stack.append(self.get_last_token().value)
+        self.stp = self.get_last_token().value
+
+    def pushconst(self):
+        self.semantic_stack.append(self.get_pre_current_token().value)
 
     def switch(self):
         self.in_dcls_flag = not self.in_dcls_flag
 
+    def begin_block(self):
+        code_index = self.result_code.add_code_line()
+        code_line = self.result_code.get_line_code(code_index=code_index)
+        code_line.result = "{"
+
+    def end_block(self):
+        code_index = self.result_code.add_code_line()
+        code_line = self.result_code.get_line_code()
+        code_line.result = "}"
+
+    def funcdscp(self):
+        # argumentlist = self.semantic_stack.pop()
+        argumentlist = '????'
+        func_name_id = self.semantic_stack.pop()
+        fdscp = Models.FunctionVariableDSC()
+        fdscp.type = self.get_pre_current_token().value
+        fdscp.argument_list = argumentlist
+
+        func_name_id = self.symbol_table.declare_variable(func_name_id)
+        func_var = self.symbol_table.get_variable(func_name_id)
+        func_var.dsc = fdscp
+
+        #### declare new function code ####
+        code_index = self.result_code.add_code_line()
+        code_line = self.result_code.get_line_code(code_index=code_index)
+
+        code_line.result = 'define'
+        code_line.optype = self.convert_var_type(fdscp.type)
+        code_line.op1 = func_name_id
+        code_line.op2 = "(" + self.convert_arguments(fdscp.argument_list) + " ) "
+        #### end declare new function code ####
+
     def sdscp(self):
-        simple_dsc = Models.SimpleVariableDSC
+        simple_dsc = Models.SimpleVariableDSC()
         # simpleDSC.type = self.symbol_table.get_variable(self.stp).type # TODO recheck later
-        var_type = self.symbol_table.get_variable(self.current_token.value)
-        simple_dsc.type = var_type.dsc.type
-        simple_dsc.address = self.adrc
-        simple_dsc.size = var_type.dsc.size
-        self.adrc += simple_dsc.size
+        var_type = self.get_pre_current_token().value
+        simple_dsc.type = var_type
         name_id = self.semantic_stack[-1]
-        var = self.symbol_table.get_variable(name_id=name_id)
+        name_id = self.symbol_table.declare_variable(name_id=name_id)
+        var = self.symbol_table.get_variable(name_id)
         var.dsc = simple_dsc
 
         #### declare code ####
         code_index = self.result_code.add_code_line()
         code_line = self.result_code.get_line_code(code_index=code_index)
-        code_line.opcode = '%' + name_id
-        code_line.op1 = '='
-        code_line.op2 = ' alloca '
-        code_line.res = self.convert_var_type(var_type)
+        code_line.result = '%' + name_id
+        code_line.operation = '='
+        code_line.optype = ' alloca '
+        code_line.op1 = self.convert_var_type(var_type)
         #### end declare code ####
 
     def pop_declare_name_id(self):
@@ -103,21 +158,20 @@ class CodeGenerator:
 
     def adscp(self):
         array_dsc = Models.ArrayVariableDSC
-        array_dsc.address = self.adrc
+        # array_dsc.address = self.adrc
         self.semantic_stack.append(array_dsc)
 
     def ub(self):
-        if int(self.current_token.value) < 1:
-            raise Exception("Array Size Error Occurred")
-        else:
-            array_dsc = self.semantic_stack[-1]
-            array_dsc.size = int(self.current_token.value)
+        ub_name_id = self.semantic_stack.pop()
+        array_dsc = self.semantic_stack[-1]
+        array_dsc.size = int(ub_name_id)
 
     def cadscp(self):
+        # TODO
         array_dsc = self.semantic_stack.pop()
         array_dsc.type = self.current_token.value
         array_dsc.type_size = self.symbol_table.get_variable(self.current_token.value).dsc.size
-        self.adrc += array_dsc.size * array_dsc.type_size
+        # self.adrc += array_dsc.size * array_dsc.type_size
         array_name_id = self.semantic_stack[-1]
         self.symbol_table.get_variable(array_name_id).dsc = array_dsc
 
@@ -277,6 +331,7 @@ class CodeGenerator:
         code_index = self.result_code.add_code_line()
         code_line = self.result_code.get_line_code()
         code_line.result = '%' + name_id
+        code_line.operation = "+"
         code_line.op1 = '%' + res_name_id
         #### end assign code ####
 
@@ -383,3 +438,7 @@ class CodeGenerator:
         elif var_type == "real":
             return 'float'
         # TODO
+
+    def convert_arguments(self, argument_list):
+        # TODO
+        return ""

@@ -8,9 +8,7 @@ class Variable:
 class SimpleVariableDSC:
     def __init__(self):
         self.am = None  # immediate ...
-        self.address = None  # address location in memory
         self.type = None  # integer real float ....
-        self.size = None  # n bytes
 
 
 class ArrayVariableDSC:
@@ -24,7 +22,8 @@ class ArrayVariableDSC:
 
 class FunctionVariableDSC:
     def __init__(self):
-        self.pc_adress
+        self.pc_address = None
+        self.argument_list = None
         self.call_pc_address = []
 
 
@@ -97,8 +96,11 @@ class Grammar:
 
 class CodeLine:
     def __init__(self):
-        self.result = None
-        self.operation = None
-        self.optype = None
-        self.op1 = None
-        self.op2 = None
+        self.result = ""
+        self.operation = ""
+        self.optype = ""
+        self.op1 = ""
+        self.op2 = ""
+
+    def __str__(self):
+        return self.result + " " + self.operation + " " + self.optype + " " + self.op1 + " " + self.op2

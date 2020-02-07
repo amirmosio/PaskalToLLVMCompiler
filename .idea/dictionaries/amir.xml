@@ -7,12 +7,17 @@
       <w>adscp</w>
       <w>alloca</w>
       <w>amir</w>
+      <w>beginblock</w>
       <w>cadscp</w>
       <w>compjp</w>
       <w>compjz</w>
       <w>dcls</w>
+      <w>endblock</w>
       <w>fattahpour</w>
+      <w>fdscp</w>
       <w>felx</w>
+      <w>funcdscp</w>
+      <w>funcdspc</w>
       <w>hossein</w>
       <w>jpcompjz</w>
       <w>mohssen</w>
@@ -21,6 +26,7 @@
       <w>opcode</w>
       <w>optype</w>
       <w>paskal</w>
+      <w>pushconst</w>
       <w>sdscp</w>
     </words>
   </dictionary>

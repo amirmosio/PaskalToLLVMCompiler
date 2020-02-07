@@ -13,7 +13,7 @@ class Parser:
         self.parse_table = parse_table
 
         #### parse stack stuff ####
-        self.grammar_right_left_hand_side_size = {'64': 2, '56': 2, '59': 2, '61': 3, '57': 2, '66': 3, '70': 3}
+        self.grammar_right_left_hand_side_size = {'67': 2, '57': 2, '60': 2, '54': 4, '71': 3}
         self.parse_stack = deque()
 
         #### next token ####
@@ -88,7 +88,7 @@ class Parser:
                     column_index = i
                     break
         if column_index == -1:
-            column_index = 16
+            column_index = 21
         return self.parse_table[parse_stack_top][column_index]
 
     def reduce_from_table(self, reduced_index):

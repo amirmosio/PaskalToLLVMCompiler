@@ -1,3 +1,4 @@
+git pull origin
 git add -A
 git commit -m "amir"
 git push origin master

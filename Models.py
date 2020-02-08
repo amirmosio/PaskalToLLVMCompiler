@@ -66,7 +66,7 @@ class ResultCode:
 
     def add_code_line_object_with_index(self, code_line, first):
         if first:
-            self.code.insert(index=0, object=code_line)
+            self.code.insert(0, code_line)
             return 0
         else:
             self.code.append(code_line)

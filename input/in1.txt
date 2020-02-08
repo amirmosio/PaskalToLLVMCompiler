@@ -1,6 +1,6 @@
 function main() : integer
 begin
-    a : integer;
-    b : integer := 10;
+    a:integer;
+    read(a);
     return 0;
 end

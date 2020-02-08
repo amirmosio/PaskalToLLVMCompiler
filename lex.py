@@ -1,9 +1,3 @@
-# # ------------------------------------------------------------
-# # calclex.py
-# #
-# # tokenizer for a simple expression evaluator for
-# # numbers and +,-,*,/
-# # ------------------------------------------------------------
 import re
 
 import ply.lex as lex
@@ -55,9 +49,9 @@ hex = r"[0-9a-fA-F]"
 @TOKEN(dec + r'+(\.' + dec + r'+)?([E|e][+\-]?' + dec + r'+)?')
 def t_cREAL(t):
     return t
+
+
 # c_INTEGER
-
-
 @TOKEN(r'[1-9]' + dec + r'*')
 def t_cINTEGER_10(t):
     t.value = int(t.value, 10)

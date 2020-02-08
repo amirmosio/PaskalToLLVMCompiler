@@ -77,7 +77,7 @@ class CodeGenerator:
         elif conceptual_routines == "assign":
             self.assign()
         elif conceptual_routines == "array":
-            self.assign()
+            self.array()
         elif conceptual_routines == "jz":
             self.jz()
         elif conceptual_routines == "compjz":
@@ -165,17 +165,16 @@ class CodeGenerator:
         temp_name_id = self.symbol_table.declare_new_variable()
         self.semantic_stack.append(temp_name_id)
         temp_var = self.symbol_table.get_variable(temp_name_id)
-        token_value = self.get_pre_current_token()
-        temp_type = token_value.type
+        token = self.get_pre_current_token()
         temp_var.dsc = Models.SimpleVariableDSC()
-        temp_var.dsc.type = self.convert_var_type(self.get_type_with_token_type(temp_type))
+        temp_var.dsc.type = self.convert_var_type(self.get_type_with_token_type(token))
 
         #### assign constant code ####
         code_index = self.result_code.add_top_code_line()
         code_line = self.result_code.get_line_code(code_index=code_index)
         code_line.result = "@." + temp_name_id
         code_line.operation = "="
-        code_line.op1 = self.convert_to_declare_token_value(token_value, temp_name_id)
+        code_line.op1 = self.convert_to_declare_token_value(token, temp_name_id)
         #### end assign constant code ####
 
     def switch(self):
@@ -543,15 +542,48 @@ class CodeGenerator:
             result = result[0:len(result) - 1]
         return result
 
-    def get_type_with_token_type(self, token_type):
+    def get_type_with_token_type(self, token):
+        token_type = None
+        try:
+            a = float(str(token.value))
+            token_type = "cREAL"
+        except:
+            pass
+        try:
+            a = int(str(token.value))
+            token_type = "cINTEGER"
+        except:
+            pass
+
+        if token_type is None:
+            token_type = "cSTRING"
+
         if token_type == "cINTEGER":
             return "integer"
         elif token_type == "cREAL":
             return "float"
 
     def convert_to_declare_token_value(self, token, temp_name):
-        if token.type == "cSTRING":
+        token_type = None
+        try:
+            a = float(str(token.value))
+            token_type = "cREAL"
+        except:
+            pass
+        try:
+            a = int(str(token.value))
+            token_type = "cINTEGER"
+        except:
+            pass
+
+        if token_type is None:
+            token_type = "cSTRING"
+
+        if token_type == "cSTRING":
             return "private constant [" + str(len(token.value)) + "*" + "i8" + "]" + " c " + str(
                 token.value)[0:len(str(token.value)) - 1] + "\\00'"
-        elif token.type == "cINTEGER":
+        elif token_type == "cINTEGER":
             return "alloca i32, align 4" + "\n" + "store i32 " + str(token.value) + ", i32* @" + temp_name + ", align 4"
+        elif token_type == "cREAL":
+            return "alloca float, align 4" + "\n" + "store float " + str(
+                token.value) + ",float* @" + temp_name + ",align 4"

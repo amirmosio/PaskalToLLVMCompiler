@@ -1,5 +1,8 @@
 function main() : integer
 begin
-    a:float := 2.5 ;
+    return 0;
+end
+function hello_func() : integer
+begin
     return 0;
 end

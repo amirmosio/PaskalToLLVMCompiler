@@ -572,7 +572,11 @@ class CodeGenerator:
         result = ""
         for i in range(self.arg_count):
             arg = self.semantic_stack.pop()
-            result += "@" + arg + ","
+            arg_var = self.symbol_table.get_variable(arg)
+            if arg_var.global_flag:
+                result += "@" + arg + ","
+            else:
+                result += "%" + arg + ","
         if self.arg_count != 0:
             result = result[0:len(result) - 1]
         return result
@@ -627,6 +631,7 @@ class CodeGenerator:
         if func_name == "write":
             temp_name_id1 = self.symbol_table.declare_new_variable()
             temp_var1 = self.symbol_table.get_variable(temp_name_id1)
+            temp_var1.global_flag = True
             code_line1 = Models.CodeLine()
             code_line1.result = "@" + temp_name_id1
             code_line1.operation = "="
@@ -656,12 +661,13 @@ class CodeGenerator:
         elif func_name == "read":
             temp_name_id1 = self.symbol_table.declare_new_variable()
             temp_var1 = self.symbol_table.get_variable(temp_name_id1)
+            temp_var1.global_flag = True
             code_line1 = Models.CodeLine()
             code_line1.result = "@" + temp_name_id1
             code_line1.operation = "="
             code_line1.optype = "private constant"
             code_line1.op1 = " [3 x i8]"
-            code_line1.op2 = "c\"%d\00\""
+            code_line1.op2 = "c\"%d\\00\""
 
             temp_name_id2 = self.symbol_table.declare_new_variable()
             temp_var2 = self.symbol_table.get_variable(temp_name_id2)

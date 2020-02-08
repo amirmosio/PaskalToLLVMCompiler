@@ -3,18 +3,16 @@ class Variable:
         self.id = None
         self.idk = None  # simple array type
         self.dsc = None  # a descriptor for more detail of variables one of below DSC
+        self.global_flag = False  # if True the variable is global and should use @ instead of %
 
 
 class SimpleVariableDSC:
     def __init__(self):
-        self.am = None  # immediate ...
         self.type = None  # integer real float ....
 
 
 class ArrayVariableDSC:
     def __init__(self):
-        self.am = None  # immediate ...
-        self.address = None  # address location in memory
         self.size = None  # n element size
         self.type = None  # integer real float element
         self.type_size = None  # n bytes

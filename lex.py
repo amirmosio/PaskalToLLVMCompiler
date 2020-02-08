@@ -52,7 +52,12 @@ dec = r"[0-9]"
 hex = r"[0-9a-fA-F]"
 
 
+@TOKEN(dec + r'+(\.' + dec + r'+)?([E|e][+\-]?' + dec + r'+)?')
+def t_cREAL(t):
+    return t
 # c_INTEGER
+
+
 @TOKEN(r'[1-9]' + dec + r'*')
 def t_cINTEGER_10(t):
     t.value = int(t.value, 10)
@@ -64,11 +69,6 @@ def t_cINTEGER_10(t):
 def t_cINTEGER_16(t):
     t.value = int(t.value, 16)
     t.type = 'cINTEGER'
-    return t
-
-
-@TOKEN(dec + r'+(\.' + dec + r'+)?([E|e][+\-]?' + dec + r'+)?')
-def t_cREAL(t):
     return t
 
 

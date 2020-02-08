@@ -19,7 +19,7 @@ class CodeGenerator:
 
         #### parse stack stuff ####
         self.grammar_right_left_hand_side_size = {'67': 2, '57': 2, '60': 2, '54': 4, '71': 3, '68': 5, '56': 8,
-                                                  '65': 1, '64': 2, '58': 3, '66': 3, '62': 3}
+                                                  '65': 1, '64': 2, '58': 3, '66': 3, '62': 3, '70': 2, '74': 5}
         # 58 is 2 for declare without assignment but 3 for decignment:)))
 
         #### current token ####
@@ -76,8 +76,10 @@ class CodeGenerator:
         elif conceptual_routines == "adscp":
             self.adscp()
         elif conceptual_routines == "ub":
+            self.grammar_right_left_hand_side_size['70'] += 2
             self.ub()
         elif conceptual_routines == "cadscp":
+            self.grammar_right_left_hand_side_size['70'] = 2
             self.cadscp()
         elif conceptual_routines == "funcdscp":
             self.grammar_right_left_hand_side_size['65'] += 1
@@ -171,10 +173,7 @@ class CodeGenerator:
 
         func_name = self.semantic_stack.pop()
 
-        code_line1, code_line2, code_line3 = self.initialization_sys_func_define(func_name=func_name)
-        self.result_code.add_code_line_object_with_index(code_line1, True)
-        self.result_code.add_code_line_object_with_index(code_line2, False)
-        self.result_code.add_code_line_object_with_index(code_line3, False)
+        post_code_line, func_args = self.get_post_line_and_args_of_function(func_name=func_name, args=args)
 
         #### call func ####
         code_index = self.result_code.add_code_line()
@@ -183,8 +182,10 @@ class CodeGenerator:
         code_line.operation = "call"
         code_line.optype = ""
         code_line.op1 = self.convert_defined_function(func_name)
-        code_line.op2 = "(" + args + ")"
+        code_line.op2 = "(" + func_args + ")"
         #### end call func ####
+        if post_code_line is not None:
+            self.result_code.add_code_line_object_with_index(post_code_line, False)
 
         pass
 
@@ -192,9 +193,12 @@ class CodeGenerator:
         temp_name_id = self.symbol_table.declare_new_variable()
         self.semantic_stack.append(temp_name_id)
         temp_var = self.symbol_table.get_variable(temp_name_id)
+        temp_var.global_flag = True
         token = self.get_pre_current_token()
         temp_var.dsc = Models.SimpleVariableDSC()
         temp_var.dsc.type = self.convert_var_type(self.get_type_with_token_type(token))
+
+        temp_var.dsc.size = len(str(token.value)) - 2
 
         #### assign constant code ####
         code_index = self.result_code.add_top_code_line()
@@ -269,30 +273,35 @@ class CodeGenerator:
         name_id = self.semantic_stack.pop()
 
     def adscp(self):
-        array_dsc = Models.ArrayVariableDSC
+        array_dsc = Models.ArrayVariableDSC()
         # array_dsc.address = self.adrc
         self.semantic_stack.append(array_dsc)
 
     def ub(self):
-        ub_name_id = self.semantic_stack.pop()
+        ub_name_id = self.get_last_token().value
         array_dsc = self.semantic_stack[-1]
-        array_dsc.size = int(ub_name_id)
+        array_dsc.size.append(int(ub_name_id))
 
     def cadscp(self):
-        # TODO
         array_dsc = self.semantic_stack.pop()
-        array_dsc.type = self.current_token.value
-        array_dsc.type_size = self.symbol_table.get_variable(self.current_token.value).dsc.size
+        array_dsc.type = self.get_pre_current_token().value
         # self.adrc += array_dsc.size * array_dsc.type_size
         array_name_id = self.semantic_stack[-1]
-        self.symbol_table.get_variable(array_name_id).dsc = array_dsc
+        array_name_id = self.symbol_table.declare_variable(array_name_id)
+        array_var = self.symbol_table.get_variable(array_name_id)
+        array_var.dsc = array_dsc
 
         #### array declare code ####
         code_index = self.result_code.add_code_line()
         code_line = self.result_code.get_line_code(code_index=code_index)
-        code_line.result = '%' + array_name_id
-        code_line.operation = "alloca"
-        code_line.op1 = '[' + array_dsc.size + ' * ' + self.convert_var_type(array_dsc.type) + ']'
+        code_line.result = array_var.get_name_id_in_llvm()
+        code_line.operation = "="
+        code_line.optype = "alloca"
+        code_line.op1 = '[' + str(array_dsc.size[-1]) + ' x ' + self.convert_var_type(array_dsc.type) + ']'
+        for i in range(len(array_dsc.size) - 2, -1, -1):
+            code_line.op1 = "[" + str(array_dsc.size[i]) + "x" + code_line.op1 + "]"
+        code_line.op1 += ","
+        code_line.op2 = "align 16"
         #### end array declare code ####
 
     def add(self):
@@ -573,10 +582,7 @@ class CodeGenerator:
         for i in range(self.arg_count):
             arg = self.semantic_stack.pop()
             arg_var = self.symbol_table.get_variable(arg)
-            if arg_var.global_flag:
-                result += "@" + arg + ","
-            else:
-                result += "%" + arg + ","
+            result += arg_var.get_name_id_in_llvm() + ","
         if self.arg_count != 0:
             result = result[0:len(result) - 1]
         return result
@@ -619,7 +625,7 @@ class CodeGenerator:
             token_type = "cSTRING"
 
         if token_type == "cSTRING":
-            return "private constant [" + str(len(token.value)) + "*" + "i8" + "]" + " c " + str(
+            return "private constant [" + str(len(token.value) - 1) + " x " + "i8" + "]" + " c " + str(
                 token.value)[0:len(str(token.value)) - 1] + "\\00'"
         elif token_type == "cINTEGER":
             return "alloca i32, align 4" + "\n" + "store i32 " + str(token.value) + ", i32* @" + temp_name + ", align 4"
@@ -627,25 +633,28 @@ class CodeGenerator:
             return "alloca float, align 4" + "\n" + "store float " + str(
                 token.value) + ",float* @" + temp_name + ",align 4"
 
-    def initialization_sys_func_define(self, func_name):
+    def get_post_line_and_args_of_function(self, func_name, args):
         if func_name == "write":
+            string_temp_name = args[1:]
+            string_temp_var = self.symbol_table.get_variable(string_temp_name)
+
             temp_name_id1 = self.symbol_table.declare_new_variable()
             temp_var1 = self.symbol_table.get_variable(temp_name_id1)
             temp_var1.global_flag = True
             code_line1 = Models.CodeLine()
-            code_line1.result = "@" + temp_name_id1
+            code_line1.result = "@" + "." + temp_name_id1
             code_line1.operation = "="
             code_line1.optype = "private constant"
             code_line1.op1 = " [3 x i8]"
-            code_line1.op2 = "c\"%s\00\""
+            code_line1.op2 = "c\'%s\\00\'"
 
             temp_name_id2 = self.symbol_table.declare_new_variable()
             temp_var2 = self.symbol_table.get_variable(temp_name_id2)
             code_line2 = Models.CodeLine()
             code_line2.result = "%" + temp_name_id2
             code_line2.operation = "="
-            code_line2.optype = "getelementptr inbounds [6 x i8],"
-            code_line2.op1 = "[6 x i8]* "
+            code_line2.optype = "getelementptr inbounds [" + str(string_temp_var.dsc.size + 1) + " x i8],"
+            code_line2.op1 = "[" + str(string_temp_var.dsc.size + 1) + " x i8]* " + args
             code_line2.op2 = ", i32 0, i32 0"
 
             temp_name_id3 = self.symbol_table.declare_new_variable()
@@ -657,13 +666,16 @@ class CodeGenerator:
             code_line3.op1 = "[3 x i8]* " + "@" + temp_name_id1
             code_line3.op2 = ", i32 0, i32 0"
 
-            return code_line1, code_line2, code_line3
+            self.result_code.add_code_line_object_with_index(code_line1, True)
+            self.result_code.add_code_line_object_with_index(code_line2, False)
+            self.result_code.add_code_line_object_with_index(code_line3, False)
+            return None, "i8* " + "%" + temp_name_id3 + ", i8* " + "%" + temp_name_id1
         elif func_name == "read":
             temp_name_id1 = self.symbol_table.declare_new_variable()
             temp_var1 = self.symbol_table.get_variable(temp_name_id1)
             temp_var1.global_flag = True
             code_line1 = Models.CodeLine()
-            code_line1.result = "@" + temp_name_id1
+            code_line1.result = "@" + "." + temp_name_id1
             code_line1.operation = "="
             code_line1.optype = "private constant"
             code_line1.op1 = " [3 x i8]"
@@ -686,6 +698,18 @@ class CodeGenerator:
             code_line3.op1 = "[3 x i8]* " + "@" + temp_name_id1
             code_line3.op2 = ", i32 0, i32 0"
 
-            return code_line1, code_line2, code_line3
+            self.result_code.add_code_line_object_with_index(code_line1, True)
+            self.result_code.add_code_line_object_with_index(code_line2, False)
+            self.result_code.add_code_line_object_with_index(code_line3, False)
+
+            temp_name_id4 = self.symbol_table.declare_new_variable()
+            temp_var4 = self.symbol_table.get_variable(temp_name_id4)
+            code_line4 = Models.CodeLine()
+            code_line4.result = args
+            code_line4.operation = "="
+            code_line4.optype = "load"
+            code_line4.op1 = "i32,i32* "
+            code_line4.op2 = "%" + temp_name_id2
+            return code_line4, "i8*" + temp_name_id3 + ",i32* " + args
         else:
-            return ""
+            return None, args

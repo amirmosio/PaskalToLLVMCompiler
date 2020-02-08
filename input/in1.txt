@@ -1,6 +1,5 @@
 function main() : integer
 begin
-    a:integer;
-    read(a);
-    return 0;
+    a:array [2,3,4] of float;
+    return 0 ;
 end

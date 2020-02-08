@@ -5,17 +5,23 @@ class Variable:
         self.dsc = None  # a descriptor for more detail of variables one of below DSC
         self.global_flag = False  # if True the variable is global and should use @ instead of %
 
+    def get_name_id_in_llvm(self):
+        if self.global_flag:
+            return "@" + self.id
+        else:
+            return "%" + self.id
+
 
 class SimpleVariableDSC:
     def __init__(self):
         self.type = None  # integer real float ....
+        self.size = None  # in case of string it is length of the string else where it is len(str(token.value))
 
 
 class ArrayVariableDSC:
     def __init__(self):
-        self.size = None  # n element size
+        self.size = []  # n element size
         self.type = None  # integer real float element
-        self.type_size = None  # n bytes
 
 
 class FunctionVariableDSC:

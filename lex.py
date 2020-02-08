@@ -163,5 +163,11 @@ def test(data):
         if not tok:
             break
         result.append(tok)
+        if tok.type == "cREAL":
+            try:
+                a = int(str(tok.value))
+                tok.type = "cINTEGER"
+            except:
+                pass
         # print(tok)
     return result

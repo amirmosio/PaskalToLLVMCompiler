@@ -17,6 +17,11 @@ class CodeGenerator:
         #### DCLS flag ####
         self.in_dcls_flag = True
 
+        #### parse stack stuff ####
+        self.grammar_right_left_hand_side_size = {'67': 2, '57': 2, '60': 2, '54': 4, '71': 3, '68': 5, '56': 8,
+                                                  '65': 1, '64': 2, '58': 3, '66': 3, '62': 3}
+        # 58 is 2 for declare without assignment but 3 for decignment:)))
+
         #### current token ####
         self.current_token = []
 
@@ -25,6 +30,22 @@ class CodeGenerator:
 
         #### address allocated memory for array and variables ####
         # self.adrc = 0
+
+    def declare_printf_to_result_code(self):
+        code_index = self.result_code.add_top_code_line()
+        code_line = self.result_code.get_line_code(code_index=code_index)
+        code_line.result = "declare"
+        code_line.optype = "i32"
+        code_line.op1 = "@printf"
+        code_line.op2 = "(" + "i32* , ..." + ")"
+
+    def declare_scanf_to_result_code(self):
+        code_index = self.result_code.add_top_code_line()
+        code_line = self.result_code.get_line_code(code_index=code_index)
+        code_line.result = "declare"
+        code_line.optype = "i32"
+        code_line.op1 = "@scanf"
+        code_line.op2 = "(" + "i32* , ..." + ")"
 
     def get_pre_current_token(self):
         return self.current_token[0]
@@ -59,6 +80,7 @@ class CodeGenerator:
         elif conceptual_routines == "cadscp":
             self.cadscp()
         elif conceptual_routines == "funcdscp":
+            self.grammar_right_left_hand_side_size['65'] += 1
             self.funcdscp()
         elif conceptual_routines == "add":
             self.add()
@@ -149,13 +171,18 @@ class CodeGenerator:
 
         func_name = self.semantic_stack.pop()
 
+        code_line1, code_line2, code_line3 = self.initialization_sys_func_define(func_name=func_name)
+        self.result_code.add_code_line_object_with_index(code_line1, True)
+        self.result_code.add_code_line_object_with_index(code_line2, False)
+        self.result_code.add_code_line_object_with_index(code_line3, False)
+
         #### call func ####
         code_index = self.result_code.add_code_line()
         code_line = self.result_code.get_line_code(code_index)
         code_line.result = ""
-        code_line.operation = ""
-        code_line.optype = "call"
-        code_line.op1 = "@" + func_name
+        code_line.operation = "call"
+        code_line.optype = ""
+        code_line.op1 = self.convert_defined_function(func_name)
         code_line.op2 = "(" + args + ")"
         #### end call func ####
 
@@ -231,6 +258,12 @@ class CodeGenerator:
         code_line.op1 = self.convert_var_type(var_type)
         code_line.op2 = ",align 4"
         #### end declare code ####
+
+        if self.get_last_token().value == ";":
+            self.grammar_right_left_hand_side_size['58'] = 2
+            self.semantic_stack.pop()
+        else:
+            self.grammar_right_left_hand_side_size['58'] = 3
 
     def pop_declare_name_id(self):
         name_id = self.semantic_stack.pop()
@@ -527,9 +560,11 @@ class CodeGenerator:
 
     def convert_defined_function(self, func_name):
         if func_name == "write":
-            return "@" + "printf"
+            self.declare_printf_to_result_code()
+            return "i32 (i8*,...)" + " @" + "printf"
         elif func_name == "read":
-            return "@" + "scanf"
+            self.declare_scanf_to_result_code()
+            return "i32 (i8*,...)" + " @" + "scanf"
         else:
             return "@" + func_name
 
@@ -587,3 +622,64 @@ class CodeGenerator:
         elif token_type == "cREAL":
             return "alloca float, align 4" + "\n" + "store float " + str(
                 token.value) + ",float* @" + temp_name + ",align 4"
+
+    def initialization_sys_func_define(self, func_name):
+        if func_name == "write":
+            temp_name_id1 = self.symbol_table.declare_new_variable()
+            temp_var1 = self.symbol_table.get_variable(temp_name_id1)
+            code_line1 = Models.CodeLine()
+            code_line1.result = "@" + temp_name_id1
+            code_line1.operation = "="
+            code_line1.optype = "private constant"
+            code_line1.op1 = " [3 x i8]"
+            code_line1.op2 = "c\"%s\00\""
+
+            temp_name_id2 = self.symbol_table.declare_new_variable()
+            temp_var2 = self.symbol_table.get_variable(temp_name_id2)
+            code_line2 = Models.CodeLine()
+            code_line2.result = "%" + temp_name_id2
+            code_line2.operation = "="
+            code_line2.optype = "getelementptr inbounds [6 x i8],"
+            code_line2.op1 = "[6 x i8]* "
+            code_line2.op2 = ", i32 0, i32 0"
+
+            temp_name_id3 = self.symbol_table.declare_new_variable()
+            temp_var3 = self.symbol_table.get_variable(temp_name_id3)
+            code_line3 = Models.CodeLine()
+            code_line3.result = "%" + temp_name_id3
+            code_line3.operation = "="
+            code_line3.optype = "getelementptr inbounds [3 x i8],"
+            code_line3.op1 = "[3 x i8]* " + "@" + temp_name_id1
+            code_line3.op2 = ", i32 0, i32 0"
+
+            return code_line1, code_line2, code_line3
+        elif func_name == "read":
+            temp_name_id1 = self.symbol_table.declare_new_variable()
+            temp_var1 = self.symbol_table.get_variable(temp_name_id1)
+            code_line1 = Models.CodeLine()
+            code_line1.result = "@" + temp_name_id1
+            code_line1.operation = "="
+            code_line1.optype = "private constant"
+            code_line1.op1 = " [3 x i8]"
+            code_line1.op2 = "c\"%d\00\""
+
+            temp_name_id2 = self.symbol_table.declare_new_variable()
+            temp_var2 = self.symbol_table.get_variable(temp_name_id2)
+            code_line2 = Models.CodeLine()
+            code_line2.result = "%" + temp_name_id2
+            code_line2.operation = "="
+            code_line2.op1 = "alloca i32,"
+            code_line2.op2 = "align 4"
+
+            temp_name_id3 = self.symbol_table.declare_new_variable()
+            temp_var3 = self.symbol_table.get_variable(temp_name_id3)
+            code_line3 = Models.CodeLine()
+            code_line3.result = "%" + temp_name_id3
+            code_line3.operation = "="
+            code_line3.optype = "getelementptr inbounds [3 x i8],"
+            code_line3.op1 = "[3 x i8]* " + "@" + temp_name_id1
+            code_line3.op2 = ", i32 0, i32 0"
+
+            return code_line1, code_line2, code_line3
+        else:
+            return ""

@@ -64,6 +64,14 @@ class ResultCode:
     def __init__(self):
         self.code = []
 
+    def add_code_line_object_with_index(self, code_line, first):
+        if first:
+            self.code.insert(index=0, object=code_line)
+            return 0
+        else:
+            self.code.append(code_line)
+            return len(self.code) - 1
+
     def add_code_line(self):
         code_line = CodeLine()
         self.code.append(code_line)

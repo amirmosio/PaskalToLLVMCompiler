@@ -1,5 +1,5 @@
 function main() : integer
 begin
-    hello('hello world !') ;
+    a:float := 2.5;
     return 0;
 end

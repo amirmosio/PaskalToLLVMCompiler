@@ -69,6 +69,11 @@ class ResultCode:
         self.code.append(code_line)
         return len(self.code) - 1
 
+    def add_top_code_line(self):
+        code_line = CodeLine()
+        self.code.insert(0, code_line)
+        return 0
+
     def get_line_code(self, code_index):
         if code_index >= len(self.code):
             raise Exception("Line Code Index Error Occurred")
@@ -103,4 +108,11 @@ class CodeLine:
         self.op2 = ""
 
     def __str__(self):
-        return self.result + " " + self.operation + " " + self.optype + " " + self.op1 + " " + self.op2
+        return str(self.result) + " " + str(self.operation) + " " + str(self.optype) + " " + str(self.op1) + " " + str(
+            self.op2)
+
+
+class Tokens:
+    def __init__(self):
+        self.value = None
+        self.type = None

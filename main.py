@@ -1,3 +1,4 @@
+import Models
 import lex as scanner
 import parser
 
@@ -40,7 +41,11 @@ def get_parse_table_detail():
 
 
 tokens = scanner.test(input_code)  # Test it
+end_token = Models.Tokens()
+end_token.value = "$"
+tokens.append(end_token)
 Syntactic_and_Linguistic, actions, parse_table = get_parse_table_detail()
 parser = parser.Parser(Syntactic_and_Linguistic, actions, parse_table, tokens=tokens)
 parser.parse_tokens()
-print(parser.code_generator.get_code())  # this is the output code
+for code_line in parser.code_generator.get_code():
+    print(str(code_line))  # this is the output code

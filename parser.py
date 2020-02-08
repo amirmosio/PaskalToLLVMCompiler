@@ -13,7 +13,9 @@ class Parser:
         self.parse_table = parse_table
 
         #### parse stack stuff ####
-        self.grammar_right_left_hand_side_size = {'67': 2, '57': 2, '60': 2, '54': 4, '71': 3}
+        self.grammar_right_left_hand_side_size = {'67': 2, '57': 2, '60': 2, '54': 4, '71': 3, '68': 5, '56': 8,
+                                                  '65': 2, '64': 2, '58': 3, '66': 3, '62': 3}
+        # 58 is 2 for declare without assignment but 3 for decignment:)))
         self.parse_stack = deque()
 
         #### next token ####
@@ -64,8 +66,12 @@ class Parser:
                 # self.read_next_token()
             elif action == "4":  # reduce
                 # doubt about 0 or 1 for left or right hand side
-                for i in range(self.grammar_right_left_hand_side_size[str(number)]):
-                    self.parse_stack.pop()
+                if number == 68:
+                    while 59 >= self.parse_stack[-1] >= 56:
+                        self.parse_stack.pop()
+                else:
+                    for i in range(self.grammar_right_left_hand_side_size[str(number)]):
+                        self.parse_stack.pop()
                 grammar = self.reduce_from_table(number)
                 # action = grammar[0]
                 number = int(grammar[1])

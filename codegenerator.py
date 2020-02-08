@@ -95,7 +95,6 @@ class CodeGenerator:
         elif conceptual_routines == "retdscp":
             self.retdscp()
         # there should be a lot if else here to call conceptual_routines functions
-        pass
 
     def get_code(self):
         return self.result_code.code
@@ -116,23 +115,33 @@ class CodeGenerator:
 
     def retdscp(self):
         ret_name_id = self.semantic_stack.pop()
+        ret_value = None
+        try:
+            ret_value = int(ret_name_id)
+        except:
+            pass
         code_index = len(self.result_code.code) - 1
         code_line = self.result_code.get_line_code(code_index=code_index)
-        code_line.op1 = "@" + ret_name_id
+        if ret_value is None:
+            code_line.op1 = "@" + ret_name_id
+        else:
+            code_line.op1 = ret_name_id
 
     def pusharg(self):
-        temp_name_id = self.symbol_table.declare_new_variable()
-        self.semantic_stack.append(temp_name_id)
-        temp_var = self.symbol_table.get_variable(temp_name_id)
-        const_value = self.get_pre_current_token().value
+        # temp_name_id = self.symbol_table.declare_new_variable()
+        # self.semantic_stack.append(temp_name_id)
+        # temp_var = self.symbol_table.get_variable(temp_name_id)
+        # const_value = self.get_pre_current_token().value
+        #
+        # #### assign constant code ####
+        # code_index = self.result_code.add_code_line()
+        # code_line = self.result_code.get_line_code(code_index=code_index)
+        # code_line.result = "%" + temp_name_id
+        # code_line.operation = "="
+        # code_line.op1 = str(const_value)
+        # #### end assign constant code ####
 
-        #### assign constant code ####
-        code_index = self.result_code.add_code_line()
-        code_line = self.result_code.get_line_code(code_index=code_index)
-        code_line.result = "%" + temp_name_id
-        code_line.operation = "="
-        code_line.op1 = str(const_value)
-        #### end assign constant code ####
+        self.arg_count += 1
 
     def callfunc(self):
         args = self.get_call_func_arg()
@@ -144,7 +153,7 @@ class CodeGenerator:
         code_index = self.result_code.add_code_line()
         code_line = self.result_code.get_line_code(code_index)
         code_line.result = ""
-        code_line.operation = "="
+        code_line.operation = ""
         code_line.optype = "call"
         code_line.op1 = "@" + func_name
         code_line.op2 = "(" + args + ")"
@@ -156,14 +165,17 @@ class CodeGenerator:
         temp_name_id = self.symbol_table.declare_new_variable()
         self.semantic_stack.append(temp_name_id)
         temp_var = self.symbol_table.get_variable(temp_name_id)
-        const_value = self.get_pre_current_token().value
+        token_value = self.get_pre_current_token()
+        temp_type = token_value.type
+        temp_var.dsc = Models.SimpleVariableDSC()
+        temp_var.dsc.type = self.convert_var_type(self.get_type_with_token_type(temp_type))
 
         #### assign constant code ####
-        code_index = self.result_code.add_code_line()
+        code_index = self.result_code.add_top_code_line()
         code_line = self.result_code.get_line_code(code_index=code_index)
-        code_line.result = "%" + temp_name_id
+        code_line.result = "@." + temp_name_id
         code_line.operation = "="
-        code_line.op1 = str(const_value)
+        code_line.op1 = self.convert_to_declare_token_value(token_value, temp_name_id)
         #### end assign constant code ####
 
     def switch(self):
@@ -176,7 +188,7 @@ class CodeGenerator:
 
     def end_block(self):
         code_index = self.result_code.add_code_line()
-        code_line = self.result_code.get_line_code()
+        code_line = self.result_code.get_line_code(code_index=code_index)
         code_line.result = "}"
 
     def funcdscp(self):
@@ -197,7 +209,7 @@ class CodeGenerator:
 
         code_line.result = 'define'
         code_line.optype = self.convert_var_type(fdscp.type)
-        code_line.op1 = func_name_id
+        code_line.op1 = "@" + func_name_id
         code_line.op2 = "(" + self.convert_arguments(fdscp.argument_list) + " ) "
         #### end declare new function code ####
 
@@ -218,6 +230,7 @@ class CodeGenerator:
         code_line.operation = '='
         code_line.optype = ' alloca '
         code_line.op1 = self.convert_var_type(var_type)
+        code_line.op2 = ",align 4"
         #### end declare code ####
 
     def pop_declare_name_id(self):
@@ -393,13 +406,16 @@ class CodeGenerator:
     def assign(self):
         res_name_id = self.semantic_stack.pop()
         name_id = self.semantic_stack.pop()
+        var_res = self.symbol_table.get_variable(res_name_id)
 
         #### assign code ####
         code_index = self.result_code.add_code_line()
         code_line = self.result_code.get_line_code(code_index=code_index)
         code_line.result = '%' + name_id
-        code_line.operation = "="
-        code_line.op1 = '%' + res_name_id
+        code_line.operation = "= add "
+        code_line.optype = var_res.dsc.type
+        code_line.op1 = '@' + res_name_id
+        code_line.op2 = "," + str(0)
         #### end assign code ####
 
     def array(self):
@@ -522,7 +538,20 @@ class CodeGenerator:
         result = ""
         for i in range(self.arg_count):
             arg = self.semantic_stack.pop()
-            result += arg + ","
+            result += "@" + arg + ","
         if self.arg_count != 0:
             result = result[0:len(result) - 1]
         return result
+
+    def get_type_with_token_type(self, token_type):
+        if token_type == "cINTEGER":
+            return "integer"
+        elif token_type == "cREAL":
+            return "float"
+
+    def convert_to_declare_token_value(self, token, temp_name):
+        if token.type == "cSTRING":
+            return "private constant [" + str(len(token.value)) + "*" + "i8" + "]" + " c " + str(
+                token.value)[0:len(str(token.value)) - 1] + "\\00'"
+        elif token.type == "cINTEGER":
+            return "alloca i32, align 4" + "\n" + "store i32 " + str(token.value) + ", i32* @" + temp_name + ", align 4"

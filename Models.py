@@ -55,9 +55,6 @@ class SymbolTable:
     def get_variable(self, name_id):
         return self.variables.get(name_id, "undefined")
 
-    def get_variable(self, variable_address):
-        return self.variables[variable_address]
-
     def declare_new_variable(self):
         name_id = "compiler_temp_variable" + str(self.variable_counter)
         self.variable_counter += 1

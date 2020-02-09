@@ -1,5 +1,11 @@
-function main() : integer
+function main(a:integer;b:float) : integer
 begin
-    a:array [2,3,4] of float;
+    aa:integer := 25;
+    bb:float := 2.55;
+    cc:float;
+    dd:integer;
+    hello('fuck you');
+    write('hello write');
+    read(dd);
     return 0 ;
 end

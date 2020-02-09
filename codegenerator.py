@@ -19,7 +19,8 @@ class CodeGenerator:
 
         #### parse stack stuff ####
         self.grammar_right_left_hand_side_size = {'67': 2, '57': 2, '60': 2, '54': 4, '71': 3, '68': 5, '56': 8,
-                                                  '65': 1, '64': 2, '58': 3, '66': 3, '62': 3, '70': 2, '74': 5}
+                                                  '65': 1, '64': 2, '58': 2, '66': 3, '62': 3, '70': 2, '74': 5,
+                                                  '51': 3, '61': 2}
         # 58 is 2 for declare without assignment but 3 for decignment:)))
 
         #### current token ####
@@ -28,8 +29,8 @@ class CodeGenerator:
         #### arg counter ####
         self.arg_count = 0
 
-        #### address allocated memory for array and variables ####
-        # self.adrc = 0
+        self.arg_define_flag = False
+        self.func_arg_counter = 0
 
     def declare_printf_to_result_code(self):
         code_index = self.result_code.add_top_code_line()
@@ -62,6 +63,7 @@ class CodeGenerator:
 
     def proceed_conceptual_routines(self, conceptual_routines):
         if conceptual_routines == "push":
+            self.grammar_right_left_hand_side_size['58'] = 2
             self.push()
         elif conceptual_routines == "pushconst":
             self.pushconst()
@@ -73,6 +75,14 @@ class CodeGenerator:
             self.end_block()
         elif conceptual_routines == "sdscp":
             self.sdscp()
+        elif conceptual_routines == "funcwitharg":
+            self.grammar_right_left_hand_side_size['56'] = 9
+        elif conceptual_routines == "funcargstart":
+            self.arg_define_flag = True
+        elif conceptual_routines == "funcargend":
+            self.arg_define_flag = False
+        elif conceptual_routines == "firstfuncarg":
+            self.func_arg_counter += 1
         elif conceptual_routines == "adscp":
             self.adscp()
         elif conceptual_routines == "ub":
@@ -83,7 +93,14 @@ class CodeGenerator:
             self.cadscp()
         elif conceptual_routines == "funcdscp":
             self.grammar_right_left_hand_side_size['65'] += 1
+            self.grammar_right_left_hand_side_size['61'] = 2
             self.funcdscp()
+        elif conceptual_routines == "deffunc":
+            self.grammar_right_left_hand_side_size['56'] = 8
+        elif conceptual_routines == "nextarg":
+            self.grammar_right_left_hand_side_size['61'] += 2
+            self.func_arg_counter += 1
+            self.next_arg()
         elif conceptual_routines == "add":
             self.add()
         elif conceptual_routines == "minus":
@@ -137,8 +154,12 @@ class CodeGenerator:
         code_line.result = "ret"
         #### end code return ####
 
+    def next_arg(self):
+        pass
+
     def retdscp(self):
         ret_name_id = self.semantic_stack.pop()
+        ret_type = self.convert_var_type(self.semantic_stack.pop())
         ret_value = None
         try:
             ret_value = int(ret_name_id)
@@ -146,6 +167,7 @@ class CodeGenerator:
             pass
         code_index = len(self.result_code.code) - 1
         code_line = self.result_code.get_line_code(code_index=code_index)
+        code_line.optype = ret_type
         if ret_value is None:
             code_line.op1 = "@" + ret_name_id
         else:
@@ -223,11 +245,17 @@ class CodeGenerator:
 
     def funcdscp(self):
         # argumentlist = self.semantic_stack.pop()
-        argumentlist = '????'
+        argumentlist = []
+        for i in range(self.func_arg_counter):
+            arg_name_id = self.semantic_stack.pop()
+            argumentlist.append(arg_name_id)
+
         func_name_id = self.semantic_stack.pop()
         fdscp = Models.FunctionVariableDSC()
         fdscp.type = self.get_pre_current_token().value
         fdscp.argument_list = argumentlist
+
+        self.semantic_stack.append(fdscp.type)
 
         func_name_id = self.symbol_table.declare_variable(func_name_id)
         func_var = self.symbol_table.get_variable(func_name_id)
@@ -262,8 +290,9 @@ class CodeGenerator:
         code_line.op1 = self.convert_var_type(var_type)
         code_line.op2 = ",align 4"
         #### end declare code ####
-
-        if self.get_last_token().value == ";":
+        if self.arg_define_flag:
+            self.grammar_right_left_hand_side_size['58'] = 2
+        elif self.get_last_token().value == ";":
             self.grammar_right_left_hand_side_size['58'] = 2
             self.semantic_stack.pop()
         else:
@@ -303,6 +332,9 @@ class CodeGenerator:
         code_line.op1 += ","
         code_line.op2 = "align 16"
         #### end array declare code ####
+
+        if self.get_last_token().value == ";":
+            self.semantic_stack.pop()
 
     def add(self):
         name_id_op1 = self.semantic_stack.pop()
@@ -564,8 +596,11 @@ class CodeGenerator:
         # TODO
 
     def convert_arguments(self, argument_list):
-        # TODO
-        return ""
+        result = []
+        for arg_name in argument_list:
+            arg_var = self.symbol_table.get_variable(arg_name)
+            result.append(self.convert_var_type(arg_var.dsc.type) + " " + arg_name)
+        return ",".join(result)
 
     def convert_defined_function(self, func_name):
         if func_name == "write":

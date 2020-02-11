@@ -3,7 +3,7 @@ import lex as scanner
 import parser
 
 #################### test Strings ###################
-file = open("input/in1.txt", "r")
+file = open("input/1.in", "r")
 input_code = ""
 for line in file:
     input_code += line

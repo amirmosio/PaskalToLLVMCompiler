@@ -38,7 +38,7 @@ class CodeGenerator:
         code_line.result = "declare"
         code_line.optype = "i32"
         code_line.op1 = "@printf"
-        code_line.op2 = "(" + "i32* , ..." + ")"
+        code_line.op2 = "(" + "i8* , ..." + ")"
 
     def declare_scanf_to_result_code(self):
         code_index = self.result_code.add_top_code_line()
@@ -46,7 +46,7 @@ class CodeGenerator:
         code_line.result = "declare"
         code_line.optype = "i32"
         code_line.op1 = "@scanf"
-        code_line.op2 = "(" + "i32* , ..." + ")"
+        code_line.op2 = "(" + "i8* , ..." + ")"
 
     def get_pre_current_token(self):
         return self.current_token[0]
@@ -200,7 +200,7 @@ class CodeGenerator:
         #### call func ####
         code_index = self.result_code.add_code_line()
         code_line = self.result_code.get_line_code(code_index)
-        code_line.result = ""
+        code_line.result = "%call = "
         code_line.operation = "call"
         code_line.optype = ""
         code_line.op1 = self.convert_defined_function(func_name)
@@ -591,7 +591,7 @@ class CodeGenerator:
             return "i32"
         elif var_type == "long":
             return 'i1000'
-        elif var_type == "float":
+        elif var_type == "real":
             return 'float'
         # TODO
 
@@ -605,10 +605,10 @@ class CodeGenerator:
     def convert_defined_function(self, func_name):
         if func_name == "write":
             self.declare_printf_to_result_code()
-            return "i32 (i8*,...)" + " @" + "printf"
+            return "i32 (i8*,...)*" + " @" + "printf"
         elif func_name == "read":
             self.declare_scanf_to_result_code()
-            return "i32 (i8*,...)" + " @" + "scanf"
+            return "i32 (i8*,...)*" + " @" + "scanf"
         else:
             return "@" + func_name  # TODO
 
@@ -661,16 +661,19 @@ class CodeGenerator:
 
         if token_type == "cSTRING":
             return "private constant [" + str(len(token.value) - 1) + " x " + "i8" + "]" + " c " + str(
-                token.value)[0:len(str(token.value)) - 1] + "\\00'"
+                token.value)[0:len(str(token.value)) - 1] + "\\00\""
         elif token_type == "cINTEGER":
-            return "alloca i32, align 4" + "\n" + "store i32 " + str(token.value) + ", i32* @" + temp_name + ", align 4"
+            # return "global i32 " + str(
+            #     token.value) + ", align 4"  # + "\n" + "store i32 " + str(token.value) + ", i32* @" + temp_name + ", align 4"
+            return "private constant [" + str(len(token.value) + 1) + " x " + "i8" + "]" + " c\"" + str(
+                token.value)[0:len(str(token.value))] + "\\00\""
         elif token_type == "cREAL":
             return "alloca float, align 4" + "\n" + "store float " + str(
                 token.value) + ",float* @" + temp_name + ",align 4"
 
     def get_post_line_and_args_of_function(self, func_name, args):
         if func_name == "write":
-            string_temp_name = args[1:]
+            string_temp_name = args[2:]
             string_temp_var = self.symbol_table.get_variable(string_temp_name)
 
             temp_name_id1 = self.symbol_table.declare_new_variable()
@@ -688,23 +691,26 @@ class CodeGenerator:
             code_line2 = Models.CodeLine()
             code_line2.result = "%" + temp_name_id2
             code_line2.operation = "="
-            code_line2.optype = "getelementptr inbounds [" + str(string_temp_var.dsc.size + 1) + " x i8],"
-            code_line2.op1 = "[" + str(string_temp_var.dsc.size + 1) + " x i8]* " + args
+            code_line2.optype = "getelementptr inbounds "
+            if string_temp_var.dsc.type == "i32":
+                code_line2.op1 = "[" + str(string_temp_var.dsc.size + 3) + " x i8]* " + args
+            else:
+                code_line2.op1 = "[" + str(string_temp_var.dsc.size + 1) + " x i8]* " + args
             code_line2.op2 = ", i32 0, i32 0"
 
             temp_name_id3 = self.symbol_table.declare_new_variable()
             temp_var3 = self.symbol_table.get_variable(temp_name_id3)
             code_line3 = Models.CodeLine()
-            code_line3.result = "%" + temp_name_id3
-            code_line3.operation = "="
-            code_line3.optype = "getelementptr inbounds [3 x i8],"
-            code_line3.op1 = "[3 x i8]* " + "@" + temp_name_id1
-            code_line3.op2 = ", i32 0, i32 0"
+            code_line3.result = ""  # "%" + temp_name_id3
+            code_line3.operation = ""  # "="
+            code_line3.optype = ""  # "getelementptr inbounds "
+            code_line3.op1 = ""  # "[3 x i8]* " + "@." + temp_name_id1
+            code_line3.op2 = ""  # ", i32 0, i32 0"
 
             self.result_code.add_code_line_object_with_index(code_line1, True)
             self.result_code.add_code_line_object_with_index(code_line2, False)
             self.result_code.add_code_line_object_with_index(code_line3, False)
-            return None, "i8* " + "%" + temp_name_id3 + ", i8* " + "%" + temp_name_id1
+            return None, "i8* " + "%" + temp_name_id2
         elif func_name == "read":
             temp_name_id1 = self.symbol_table.declare_new_variable()
             temp_var1 = self.symbol_table.get_variable(temp_name_id1)

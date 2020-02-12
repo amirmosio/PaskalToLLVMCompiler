@@ -7,7 +7,7 @@ class Variable:
 
     def get_name_id_in_llvm(self):
         if self.global_flag:
-            return "@" + self.id
+            return "@." + self.id
         else:
             return "%" + self.id
 

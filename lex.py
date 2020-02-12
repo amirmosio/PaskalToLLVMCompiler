@@ -68,7 +68,7 @@ def t_cINTEGER_16(t):
 
 t_cCHAR = r"'([^']|\")'"
 # t_cSTRING = r"\'(\\.|[^\'])(\\.|[^\'])+\'"
-t_cSTRING = r"\'[^']*\'"
+t_cSTRING = r"\"[^']*\""
 
 # bitwise
 t_oAND = re.escape(r'&')

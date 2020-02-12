@@ -481,6 +481,8 @@ class CodeGenerator:
         name_id = self.semantic_stack.pop()
         var_res = self.symbol_table.get_variable(res_name_id)
 
+
+
         #### assign code ####
         code_index = self.result_code.add_code_line()
         code_line = self.result_code.get_line_code(code_index=code_index)
@@ -673,7 +675,7 @@ class CodeGenerator:
 
     def get_post_line_and_args_of_function(self, func_name, args):
         if func_name == "write":
-            string_temp_name = args[2:]
+            string_temp_name = Models.Variable.convert_llvm_name_to_pascal(args)
             string_temp_var = self.symbol_table.get_variable(string_temp_name)
 
             temp_name_id1 = self.symbol_table.declare_new_variable()

@@ -11,6 +11,13 @@ class Variable:
         else:
             return "%" + self.id
 
+    @classmethod
+    def convert_llvm_name_to_pascal(cls,name):
+        if name[0] == "%":
+            return name[1:]
+        else:
+            return name[2:]
+
 
 class SimpleVariableDSC:
     def __init__(self):

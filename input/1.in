@@ -1,5 +1,5 @@
 function main() : integer
 begin
-	r: real := 0.2 ;
-	return 0 ;
+    write("hello world !") ;
+    return 0 ;
 end

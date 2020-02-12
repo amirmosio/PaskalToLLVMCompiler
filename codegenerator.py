@@ -610,7 +610,7 @@ class CodeGenerator:
             self.declare_scanf_to_result_code()
             return "i32 (i8*,...)" + " @" + "scanf"
         else:
-            return "@" + func_name
+            return "@" + func_name  # TODO
 
     def get_call_func_arg(self):
         result = ""
@@ -637,7 +637,7 @@ class CodeGenerator:
 
         if token_type is None:
             token_type = "cSTRING"
-
+        # TODO
         if token_type == "cINTEGER":
             return "integer"
         elif token_type == "cREAL":
@@ -681,7 +681,7 @@ class CodeGenerator:
             code_line1.operation = "="
             code_line1.optype = "private constant"
             code_line1.op1 = " [3 x i8]"
-            code_line1.op2 = "c\'%s\\00\'"
+            code_line1.op2 = "c\"%s\\00\""
 
             temp_name_id2 = self.symbol_table.declare_new_variable()
             temp_var2 = self.symbol_table.get_variable(temp_name_id2)

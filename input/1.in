@@ -1,11 +1,6 @@
-function main(a:integer;b:float) : integer
+function main() : integer
 begin
-    aa:integer := 25;
-    bb:float := 2.55;
-    cc:float;
-    dd:integer;
-    hello('fuck you');
-    write('hello write');
-    read(dd);
+	a : integer;
+	write(2);
     return 0 ;
 end

@@ -1,6 +1,6 @@
 import Models
 import lex as scanner
-import parser
+import Parser
 
 #################### test Strings ###################
 file = open("input/1.in", "r")
@@ -45,7 +45,7 @@ end_token = Models.Tokens()
 end_token.value = "$"
 tokens.append(end_token)
 Syntactic_and_Linguistic, actions, parse_table = get_parse_table_detail()
-parser = parser.Parser(Syntactic_and_Linguistic, actions, parse_table, tokens=tokens)
+parser = Parser.Parser(Syntactic_and_Linguistic, actions, parse_table, tokens=tokens)
 parser.parse_tokens()
 for code_line in parser.code_generator.get_code():
     print(str(code_line))  # this is the output code

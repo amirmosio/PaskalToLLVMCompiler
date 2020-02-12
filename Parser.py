@@ -12,7 +12,6 @@ class Parser:
         self.actions = actions
         self.parse_table = parse_table
 
-
         self.parse_stack = deque()
 
         #### next token ####
